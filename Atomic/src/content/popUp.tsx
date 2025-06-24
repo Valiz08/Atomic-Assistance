@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import styles from "./popUp.module.css";
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
 export default function PopUp() {
     const [messages, setMessages] = useState([
@@ -39,7 +40,7 @@ export default function PopUp() {
                         <img src="atom.png" alt="atom" className={styles["atom"]}/>
                         <h2>Atomic Assistance</h2>
                     </div>
-                    <button className="material-symbols-outlined">keyboard_arrow_down</button>
+                    <button className={styles["closeBttn"]}><KeyboardArrowDownIcon/></button>
                 </section>
                 <section className={styles["bodyChat"]}>
                     {messages.map((msg, idx) =>
