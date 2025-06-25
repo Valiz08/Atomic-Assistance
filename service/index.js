@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const OpenAI = require("openai");
 require("dotenv").config();
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
 const PORT = 3001;
@@ -9,18 +9,27 @@ const PORT = 3001;
 app.use(cors());
 app.use(express.json());
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 app.post("/api/ask", async (req, res) => {
   const { message } = req.body;
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    const result = await model.generateContent(message);
-    const reply = result.response.text();
+    const completion = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo-0613",
+      store: true,
+      messages: [
+        { role: "system", content: "Eres un asistente útil para dudas sobre productos llamado Atom" },
+        { role: "user", content: message }
+      ],
+      max_tokens: 150,
+    });
+    const reply = completion.choices[0].message.content;
     res.json({ reply });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ reply: "Error al conectar con Gemini." });
+    res.status(500).json({ reply: "Error al conectar con la IA." });
   }
 });
 
