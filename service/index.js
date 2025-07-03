@@ -6,7 +6,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
-console.log("OPENAI_API_KEY:", process.env.ko);
+console.log("OPENAI_API_KEY:", process.env.PORT);
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
