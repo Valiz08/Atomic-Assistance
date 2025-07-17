@@ -16,7 +16,7 @@ app.post("/api/ask", async (req, res) => {
   const { message } = req.body;
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo-0613",
+      model: "gpt-4.1-mini",
       store: true,
       messages: [
         { role: "system", content: "Eres un asistente útil para dudas sobre productos llamado Atom" },
