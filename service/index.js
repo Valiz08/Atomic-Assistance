@@ -4,7 +4,7 @@ const cors = require("cors");
 const OpenAI = require("openai");
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3088;
 app.use(cors());
 app.use(express.json());
 console.log("DEBUG ENV:", JSON.stringify(process.env, null, 2));
