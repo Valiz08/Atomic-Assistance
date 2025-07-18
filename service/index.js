@@ -11,7 +11,7 @@ console.log("DEBUG ENV:", JSON.stringify(process.env, null, 2));
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-
+conso0le.log("DEBUG OpenAI:", openai);
 app.post("/api/ask", async (req, res) => {
   const { message } = req.body;
   try {
@@ -28,7 +28,8 @@ app.post("/api/ask", async (req, res) => {
     const reply = completion.choices[0].message.content;
     res.json({ reply });
   } catch (error) {
-    console.error(error);
+    console.error("ERROR AL CONECTAR CON OPENAI:");
+    console.error(error.response?.data || error.message || error);
     res.status(500).json({ reply: "Error al conectar con la IA." });
   }
 });
