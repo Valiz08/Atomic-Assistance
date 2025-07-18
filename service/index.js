@@ -15,6 +15,7 @@ const openai = new OpenAI({
 app.post("/api/ask", async (req, res) => {
   const { message } = req.body;
   try {
+    console.log("Received message:", message);
     const completion = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
       store: true,
