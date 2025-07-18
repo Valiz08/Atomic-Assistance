@@ -15,8 +15,6 @@ app.post("/api/ask", async (req, res) => {
   const { message } = req.body;
   try {
     console.log("Received message:", message);
-    const reply = completion.choices[0].message.content;
-    res.json({ reply });
   } catch (error) {
     console.log("ERROR AL CONECTAR CON OPENAI:");
     console.log(error.response?.data || error.message || error);
