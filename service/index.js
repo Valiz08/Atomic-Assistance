@@ -24,7 +24,7 @@ app.post("/api/ask", async (req, res) => {
       max_tokens: 150,
     });
     const reply = completion.choices[0].message.content;
-    res.status(200).json( reply ?  reply : { reply: "No se pudo generar una respuesta." });
+    res.status(200).json( reply ? { reply: reply } : { reply: "No se pudo generar una respuesta." });
   } catch (error) {
     console.log("ERROR AL CONECTAR CON OPENAI:");
     console.log(error.response?.data || error.message || error);
