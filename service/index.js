@@ -15,15 +15,6 @@ app.post("/api/ask", async (req, res) => {
   const { message } = req.body;
   try {
     console.log("Received message:", message);
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      store: true,
-      messages: [
-        { role: "system", content: "Eres un asistente útil para dudas sobre productos llamado Atom" },
-        { role: "user", content: message }
-      ],
-      max_tokens: 150,
-    });
     const reply = completion.choices[0].message.content;
     res.json({ reply });
   } catch (error) {
