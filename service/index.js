@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
-const OpenAI = require("openai");
+const { OpenAI } = require("openai");
 
 const app = express();
 const PORT = process.env.PORT || 3088;
@@ -16,7 +16,7 @@ app.post("/api/ask", async (req, res) => {
   try {
     console.log("Received message:", message);
     const completion = await openai.chat.completions.create({
-      model: "gpt-4.1-mini",
+      model: "gpt-3.5-turbo",
       store: true,
       messages: [
         { role: "system", content: "Eres un asistente útil para dudas sobre productos llamado Atom" },
