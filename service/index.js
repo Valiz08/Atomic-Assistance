@@ -15,7 +15,17 @@ app.post("/api/ask", async (req, res) => {
   const { message } = req.body;
   try {
     console.log("Received message:", message);
-    res.status(200).json({ reply: message });
+    const completion = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      store: true,
+      messages: [
+        { role: "system", content: "Eres un asistente útil para dudas sobre productos llamado Atom" },
+        { role: "user", content: message }
+      ],
+      max_tokens: 150,
+    });
+    const reply = completion.choices[0].message.content;
+    res.status(200).json({ reply });
   } catch (error) {
     console.log("ERROR AL CONECTAR CON OPENAI:");
     console.log(error.response?.data || error.message || error);
