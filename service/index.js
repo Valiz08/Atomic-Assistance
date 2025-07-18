@@ -17,7 +17,6 @@ app.post("/api/ask", async (req, res) => {
     console.log("Received message:", message);
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
-      store: true,
       messages: [
         { role: "system", content: "Eres un asistente útil para dudas sobre productos llamado Atom" },
         { role: "user", content: message }
@@ -25,7 +24,7 @@ app.post("/api/ask", async (req, res) => {
       max_tokens: 150,
     });
     const reply = completion.choices[0].message.content;
-    res.status(200).json({ reply });
+    res.status(200).json( reply ?  reply : { reply: "No se pudo generar una respuesta." });
   } catch (error) {
     console.log("ERROR AL CONECTAR CON OPENAI:");
     console.log(error.response?.data || error.message || error);
