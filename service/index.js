@@ -28,7 +28,7 @@ app.post("/api/ask", async (req, res) => {
   } catch (error) {
     console.log("ERROR AL CONECTAR CON OPENAI:");
     console.log(error.response?.data || error.message || error);
-    res.status(500).json({ reply: "Error al conectar con la IA. "+error.response?.data });
+    res.status(500).json({ reply: "Error al conectar con la IA. "+error });
   }
 });
 
