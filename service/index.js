@@ -11,7 +11,7 @@ console.log("DEBUG ENV:", JSON.stringify(process.env, null, 2));
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-conso0le.log("DEBUG OpenAI:", openai);
+console.log("DEBUG OpenAI:", openai);
 app.post("/api/ask", async (req, res) => {
   const { message } = req.body;
   try {
