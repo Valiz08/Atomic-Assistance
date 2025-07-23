@@ -1,9 +1,9 @@
-import PopUp from './content/popUp.tsx'
+import Base from './content/base.tsx'
 
 function App() {
   return (
     <>
-      <PopUp/>
+      <Base />
     </>
   )
 }

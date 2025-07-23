@@ -1,0 +1,69 @@
+.atom{
+    width: 10%;
+}
+.popUp {
+    box-sizing: border-box;
+    font-family: "Space Grotesk", sans-serif;
+}
+
+body{
+    width: 100%;
+    min-height: 100vh;
+    background: #494949;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: black;
+}
+.bodyPopUp{
+    background-color: #494949;
+    border-radius: 15px;
+    overflow: hidden;
+}
+.bodyPopUp .header{
+    padding: 2em;
+    display: flex;
+    background: linear-gradient(90deg, #187caa 0%, #6fd1ff 100%);
+    text-align: center;
+    justify-content: space-between;
+}
+.headerContent{
+    gap: 2em;
+    display: flex;
+    align-items: center;
+    color: #ffffff;
+}
+.headerContent img{
+    width: 50px;
+    margin: 1px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #6fd1ff;
+    border-radius: 50%;
+    border-style: double;
+}
+.loginSection{
+    background: #ffffff;
+    align-items: center;
+    border-radius: 0px;
+    height: 722px;
+    display: flex;
+    flex-direction: column;
+}
+.loginForm{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+}
+.inputLog{
+    margin-top: 1em;
+    width: 100%;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+}
+.bttnLogin{
+    margin-top: 1em;
+    width: 100%;
+    background-color: linear-gradient(90deg, #187caa 0%, #6fd1ff 100%);;
+}
