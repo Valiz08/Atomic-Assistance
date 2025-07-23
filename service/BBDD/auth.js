@@ -1,10 +1,11 @@
-const { MongoClient } = require('mongodb');
 const mongoose = require('mongoose');
+
 const AuthSchema = new mongoose.Schema({
   username: String,
   password: String
 });
-module.exports = mongoose.model('auth', AuthSchema);
+
+const Auth = mongoose.model('Auth', AuthSchema);
 
 async function userBBDD() {
     const client = new MongoClient(uri, { useUnifiedTopology: true });
@@ -20,4 +21,4 @@ async function userBBDD() {
     }
 }
 
-module.exports = userBBDD;
+module.exports = { Auth, userBBDD };

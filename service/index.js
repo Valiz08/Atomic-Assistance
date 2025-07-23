@@ -3,7 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const { OpenAI } = require("openai");
-const auth = require('./BBDD/auth');
+const { Auth } = require('./BBDD/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3088;
@@ -17,23 +17,17 @@ const openai = new OpenAI({
 
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
-  try{
-    const user = await auth.findOne();
+  try {
+    const user = await Auth.findOne({ username });
     console.log(user);
-    if (username == user.username  && password == user.password) {
-      res.status(200).json({
-        message: "Login successful",
-      });
+    if (user && user.password === password) {
+      res.status(200).json({ message: "Login successful" });
     } else {
-      res.status(401).json({
-        message: "Invalid username or password",
-      });
+      res.status(401).json({ message: "Invalid username or password" });
     }
-  }catch (error) {
+  } catch (error) {
     console.error("Error al conectar a la base de datos:", error);
-    res.status(500).json({
-      message: "Error al conectar a la base de datos",
-    });
+    res.status(500).json({ message: "Error al conectar a la base de datos" });
   }
 });
 
