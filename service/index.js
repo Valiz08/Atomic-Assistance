@@ -18,9 +18,9 @@ const openai = new OpenAI({
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
   try{
-    const user = await auth.find();
+    const user = await auth.findOne();
     console.log(user);
-    if (username === "admin" && password === "password") {
+    if (username == user.username  && password == user.password) {
       res.status(200).json({
         message: "Login successful",
       });
