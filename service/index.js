@@ -53,9 +53,9 @@ app.post("/api/ask", async (req, res) => {
     });
     const reply = completion.choices[0].message.content;
     updateSession(
-      userId= userId,
-      message= message,
-      reply= reply,
+      userId,
+      message,
+      reply,
     );
     res.status(200).json( reply ? { reply: reply } : { reply: "No se pudo generar una respuesta." });
   } catch (error) {
