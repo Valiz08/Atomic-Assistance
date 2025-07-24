@@ -25,7 +25,7 @@ app.post("/api/login", async (req, res) => {
       bcrypt.compare(password, user.pass, (err, resultado) => {
         if (err) throw err;
         if (resultado) {
-          res.status(200).json({ message: "Login successful" });
+          res.status(200).json({ message: "Login successful", userId: user._id });
         } else {
           res.status(401).json({ message: "Invalid username or password" });
         }

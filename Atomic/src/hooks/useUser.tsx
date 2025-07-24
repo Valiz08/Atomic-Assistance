@@ -16,6 +16,7 @@ export const useUser = () => {
             if (!response.ok) throw new Error("Login failed");
             const data: commonResponse<any> = await response.json();
             const aux = {
+                id: data.userId,
                 username: username,
                 password: password,
             } as AuthTypes.login;
