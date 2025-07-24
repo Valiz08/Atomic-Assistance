@@ -7,6 +7,8 @@ const app = express();
 const PORT = process.env.PORT || 3088;
 const MONGO_URI = process.env.MONGO_URI
 const client = new MongoClient(MONGO_URI);
+const bcrypt = require('bcrypt');
+
 app.use(cors());
 app.use(express.json());
 
