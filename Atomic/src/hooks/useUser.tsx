@@ -14,6 +14,7 @@ export const useUser = () => {
                 body: JSON.stringify({ username, password }),
             });
             if (!response.ok) throw new Error("Login failed");
+            console.log(await response.json())
             const data: commonResponse<atomicResponse<AuthTypes.login>> = await response.json();
             const aux = data.data.data;
             dispatch(auth(aux));

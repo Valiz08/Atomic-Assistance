@@ -1,13 +1,12 @@
 require('dotenv').config();
 const express = require("express");
-const mongoose = require("mongoose");
+const { MongoClient } = require('mongodb');
 const cors = require("cors");
 const { OpenAI } = require("openai");
-const { Auth } = require('./BBDD/auth');
-
 const app = express();
 const PORT = process.env.PORT || 3088;
 const MONGO_URI = process.env.MONGO_URI
+const client = new MongoClient(MONGO_URI);
 app.use(cors());
 app.use(express.json());
 
@@ -18,13 +17,14 @@ const openai = new OpenAI({
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
   try {
-    const user = await Auth.findOne({ username });
-    console.log(user);
-    if (user && user.password === password) {
-      res.status(200).json({ message: "Login successful" });
-    } else {
-      res.status(401).json({ message: "Invalid username or password" });
-    }
+      const db = client.db('atomicApp');
+      const usuarios = db.collection('users');
+      const user = await usuarios.findOne({ user: username });
+      if (user && user.pass === password) {
+        res.status(200).json({ message: "Login successful" });
+      } else {
+        res.status(401).json({ message: "Invalid username or password" });
+      }
   } catch (error) {
     console.error("Error al conectar a la base de datos:", error);
     res.status(500).json({ message: "Error al conectar a la base de datos" });
