@@ -14,7 +14,6 @@ export const useUser = () => {
                 body: JSON.stringify({ username, password }),
             });
             if (!response.ok) throw new Error("Login failed");
-            console.log(await response.json())
             const data: commonResponse<any> = await response.json();
             const aux = {
                 username: username,
@@ -35,6 +34,7 @@ export const useUser = () => {
             });
             if (!response.ok) throw new Error("Ask failed");
             const data = await response.json();
+            console.log("Ask response:", data);
             return data.reply;
         } catch (error) {
             console.error("Ask error:", error);

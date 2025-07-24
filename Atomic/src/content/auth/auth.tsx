@@ -3,7 +3,6 @@ import styles from "./auth.module.css";
 import { useUser } from "../../hooks/useUser";
 import { Button, FormControl, IconButton, InputAdornment, InputLabel, OutlinedInput, TextField } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import bcrypt from 'bcryptjs';
 import { useSelector } from "react-redux";
 import type { RootState } from "@reduxjs/toolkit/query";
 import PopUp from "../popUp/popUp";
@@ -17,7 +16,6 @@ export default function Base() {
     const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
     };
-    const session = useSelector((state: RootState) => state.user.session);
 
     const handleMouseUpPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
@@ -26,6 +24,7 @@ export default function Base() {
     const handlerAuth = async () => {
         try {
             const mssg = await login(username, password);
+            console.log(mssg)
             if(mssg) {
                 return <PopUp />;
             }
@@ -52,7 +51,7 @@ export default function Base() {
                             <OutlinedInput
                             id="outlined-adornment-password"
                             type={showPassword ? 'text' : 'password'}
-                            onChange={(e) => setPassword(bcrypt.hashSync(e.target.value, 10))}
+                            onChange={(e) => setPassword(e.target.value)}
                             endAdornment={
                                 <InputAdornment position="end">
                                 <IconButton

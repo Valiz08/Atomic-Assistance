@@ -24,9 +24,8 @@ export default function Base() {
             input.value = "";
             // Llama al backend
             try {
-                const response = await ask(value);
-                const data = await response.json();
-                setMessages(prev => [...prev, { from: "bot", text: data.reply }]);
+                const data = await ask(value);
+                setMessages(prev => [...prev, { from: "bot", text: data }]);
             } catch (err) {
                 setMessages(prev => [...prev, { from: "bot", text: "Error al conectar con la IA." }]);
             }

@@ -40,15 +40,23 @@ app.post("/api/login", async (req, res) => {
 app.post("/api/ask", async (req, res) => {
   const { message } = req.body;
   try {
-    console.log("Received message:", message);
+    const db = client.db('atomicApp');
+    const record = db.collection('record');
+    const records = await record.findOne({ userId: userId });
+    console.log("Received message:", records);
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini-2024-07-18",
       messages: [
-        { role: "system", content: "Eres un asistente útil para dudas sobre productos llamado Atom" },
+        { role: "system", content: records ? records.systemMessage : "Eres un asistente útil para dudas sobre productos llamado Atom" },
         { role: "user", content: message }
       ],
     });
     const reply = completion.choices[0].message.content;
+    updateSession(
+      userId= userId,
+      message= message,
+      reply= reply,
+    );
     res.status(200).json( reply ? { reply: reply } : { reply: "No se pudo generar una respuesta." });
   } catch (error) {
     console.log("ERROR AL CONECTAR CON OPENAI:");
@@ -56,6 +64,21 @@ app.post("/api/ask", async (req, res) => {
     res.status(500).json({ reply: "Error al conectar con la IA. "+error });
   }
 });
+
+function updateSession(userId, message, reply) {
+  const db = client.db('atomicApp');
+  const record = db.collection('record');
+  record.updateOne(
+    { userId: userId },
+    { $push: { messages: { from: "user", text: message } } },
+    { upsert: true }
+  );
+  record.updateOne(
+    { userId: userId },
+    { $push: { messages: { from: "bot", text: reply } } },
+    { upsert: true }
+  );
+}
 
 
 app.listen(PORT, () => {
