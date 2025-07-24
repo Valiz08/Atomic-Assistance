@@ -25,8 +25,8 @@ export default function Base() {
 
     const handlerAuth = async () => {
         try {
-            await login(username, password);
-            if( session) {
+            const mssg = await login(username, password);
+            if(mssg) {
                 return <PopUp />;
             }
         } catch (err) {

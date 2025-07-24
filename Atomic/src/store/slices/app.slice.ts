@@ -11,6 +11,7 @@ export const appSlice = createSlice({
     initialState: initialState,
     reducers: {
         auth: (state, action: PayloadAction<AuthTypes.login>) => {
+            console.log("auth", action.payload);
             const data: AuthTypes.login = action.payload;
             state.session = data;
         }
