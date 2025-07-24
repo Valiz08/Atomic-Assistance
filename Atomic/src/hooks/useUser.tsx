@@ -26,12 +26,12 @@ export const useUser = () => {
             console.error("Login error:", error);
         }
     }
-    const ask = async (message: string) => {
+    const ask = async (message: string, userId: string) => {
         try {
             const response = await fetch("https://wscex.atomic-assistance.es/api/ask", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message }),
+                body: JSON.stringify({ message, userId}),
             });
             if (!response.ok) throw new Error("Ask failed");
             const data = await response.json();

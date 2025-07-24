@@ -2,9 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import styles from "./popUp.module.css";
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import { useUser } from "../../hooks/useUser";
+import { useSelector } from "react-redux";
+import type { RootState } from "@reduxjs/toolkit/query";
 
 export default function Base() {
     const { ask } = useUser();
+    const session = useSelector((state: RootState) => state.user.session);
+
     const [messages, setMessages] = useState([
         { from: "bot", text: "Hola, soy Atom! ¿En qué puedo ayudarte?" },
     ]);
@@ -24,7 +28,8 @@ export default function Base() {
             input.value = "";
             // Llama al backend
             try {
-                const data = await ask(value);
+                console.log(session.id)
+                const data = await ask(value, session.id);
                 setMessages(prev => [...prev, { from: "bot", text: data }]);
             } catch (err) {
                 setMessages(prev => [...prev, { from: "bot", text: "Error al conectar con la IA." }]);

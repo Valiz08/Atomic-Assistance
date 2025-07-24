@@ -38,7 +38,7 @@ app.post("/api/login", async (req, res) => {
 
 
 app.post("/api/ask", async (req, res) => {
-  const { message } = req.body;
+  const { message, userId } = req.body;
   try {
     const db = client.db('atomicApp');
     const record = db.collection('record');
