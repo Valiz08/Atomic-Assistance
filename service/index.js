@@ -43,7 +43,7 @@ app.post("/api/ask", async (req, res) => {
     const db = client.db('atomicApp')
     const record = db.collection('record')
     const records = await record.findOne({ userId: userId })
-    const messageRecord = transformData(records.messages || [])
+    const messageRecord = transformData(records?.messages || [])
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini-2024-07-18",
       messages: [
@@ -80,17 +80,11 @@ function updateSession(userId, message, reply) {
   );
 }
 
-function transformData(data){
-  const chatHistory = data || [];
-
-  const formattedMessages = chatHistory.map(msg => ({
-    role: msg.sender === "user" ? "user" : "assistant",
-    content: msg.message
+function transformData(messages) {
+  return messages.map(msg => ({
+    role: msg.from === "user" ? "user" : "assistant",
+    content: msg.text
   }));
-  return formattedMessages.push({
-    role: "user",
-    content: message // mensaje que acaba de enviar el usuario
-  });
 }
 
 
