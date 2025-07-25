@@ -43,11 +43,11 @@ app.post("/api/ask", async (req, res) => {
     const db = client.db('atomicApp')
     const record = db.collection('record')
     const records = await record.findOne({ userId: userId })
-    const message = transformData(records.messages || [])
+    const messageRecord = transformData(records.messages || [])
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini-2024-07-18",
       messages: [
-        { role: "system", content: message || "Eres un asistente útil para dudas sobre productos llamado Atom" },
+        { role: "system", content: messageRecord || "Eres un asistente útil para dudas sobre productos llamado Atom" },
         { role: "user", content: message }
       ],
     });
