@@ -47,7 +47,7 @@ app.post("/api/ask", async (req, res) => {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini-2024-07-18",
       messages: [
-        { role: "system", content: messageRecord || "Eres un asistente útil para dudas sobre productos llamado Atom" },
+        { role: "system", content: messageRecord ? messageRecord : "Eres un asistente útil para dudas sobre productos llamado Atom" },
         { role: "user", content: message }
       ],
     });
