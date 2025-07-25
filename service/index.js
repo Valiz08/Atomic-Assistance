@@ -44,14 +44,25 @@ app.post("/api/ask", async (req, res) => {
     const record = db.collection('record')
     const records = await record.findOne({ userId: userId })
     const messageRecord = transformData(records?.messages || [])
+    const finalMessages = [
+      {
+        role: "system",
+        content: [{ type: "text", text: "Eres un asistente útil para dudas sobre productos llamado Atom" }]
+      },
+      ...messageRecord,
+      {
+        role: "user",
+        content: [{ type: "text", text: message }]
+      }
+    ];
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini-2024-07-18",
       messages: [
-        { role: "system", content: messageRecord ? messageRecord : "Eres un asistente útil para dudas sobre productos llamado Atom" },
+        { role: "system", content: finalMessages || "Eres un asistente útil para dudas sobre productos llamado Atom" },
         { role: "user", content: message }
       ],
     });
-    const reply = completion.choices[0].message.content;
+    const reply = completion.choices[0].message.content.text;
     updateSession(
       userId,
       message,
@@ -83,7 +94,7 @@ function updateSession(userId, message, reply) {
 function transformData(messages) {
   return messages.map(msg => ({
     role: msg.from === "user" ? "user" : "assistant",
-    content: msg.text
+    content: [{ type: "text", text: msg.text }]
   }));
 }
 
