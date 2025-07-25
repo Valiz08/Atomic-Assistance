@@ -25,7 +25,7 @@ app.post("/api/login", async (req, res) => {
       bcrypt.compare(password, user.pass, (err, resultado) => {
         if (err) throw err;
         if (resultado) {
-          res.status(200).json({ message: "Login successful", userId: user._id });
+          res.status(200).json({ message: "Login successful", userId: user.id });
         } else {
           res.status(401).json({ message: "Invalid username or password" });
         }
@@ -47,7 +47,7 @@ app.post("/api/ask", async (req, res) => {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini-2024-07-18",
       messages: [
-        { role: "system", content: records ? records.systemMessage : "Eres un asistente útil para dudas sobre productos llamado Atom" },
+        { role: "system", content: records ? records. : "Eres un asistente útil para dudas sobre productos llamado Atom" },
         { role: "user", content: message }
       ],
     });
