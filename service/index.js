@@ -40,14 +40,14 @@ app.post("/api/login", async (req, res) => {
 app.post("/api/ask", async (req, res) => {
   const { message, userId } = req.body;
   try {
-    const db = client.db('atomicApp');
-    const record = db.collection('record');
-    const records = await record.findOne({ userId: userId });
-    console.log("Received message:", records);
+    const db = client.db('atomicApp')
+    const record = db.collection('record')
+    const records = await record.findOne({ userId: userId })
+    const message = transformData(records.messages || [])
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini-2024-07-18",
       messages: [
-        { role: "system", content: records ? records.messages : "Eres un asistente útil para dudas sobre productos llamado Atom" },
+        { role: "system", content: message || "Eres un asistente útil para dudas sobre productos llamado Atom" },
         { role: "user", content: message }
       ],
     });
@@ -78,6 +78,19 @@ function updateSession(userId, message, reply) {
     { $push: { messages: { from: "bot", text: reply } } },
     { upsert: true }
   );
+}
+
+function transformData(data){
+  const chatHistory = data || [];
+
+  const formattedMessages = chatHistory.map(msg => ({
+    role: msg.sender === "user" ? "user" : "assistant",
+    content: msg.message
+  }));
+  return formattedMessages.push({
+    role: "user",
+    content: message // mensaje que acaba de enviar el usuario
+  });
 }
 
 
