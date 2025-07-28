@@ -45,10 +45,6 @@ app.post("/api/ask", async (req, res) => {
     const records = await record.findOne({ userId: userId })
     const messageRecord = transformData(records?.messages || [])
     const finalMessages = [
-      {
-        role: "system",
-        content: [{ type: "text", text: "Eres un asistente útil para dudas sobre productos llamado Atom" }]
-      },
       ...messageRecord,
       {
         role: "user",
@@ -57,12 +53,9 @@ app.post("/api/ask", async (req, res) => {
     ];
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini-2024-07-18",
-      messages: [
-        { role: "system", content: finalMessages || "Eres un asistente útil para dudas sobre productos llamado Atom" },
-        { role: "user", content: message }
-      ],
+      messages: finalMessages,
     });
-    const reply = completion.choices[0].message.content.text;
+    const reply = completion.choices[0].message.content;
     updateSession(
       userId,
       message,
@@ -81,12 +74,16 @@ function updateSession(userId, message, reply) {
   const record = db.collection('record');
   record.updateOne(
     { userId: userId },
-    { $push: { messages: { from: "user", text: message } } },
-    { upsert: true }
-  );
-  record.updateOne(
-    { userId: userId },
-    { $push: { messages: { from: "bot", text: reply } } },
+    {
+      $push: {
+        messages: {
+          $each: [
+            { from: "user", text: message },
+            { from: "assistant", text: reply }
+          ]
+        }
+      }
+    },
     { upsert: true }
   );
 }
