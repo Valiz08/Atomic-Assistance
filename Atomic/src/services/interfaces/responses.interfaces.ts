@@ -2,7 +2,7 @@ export interface commonResponse<T> {
     data: T;
     success: boolean;
     message: string;
-    userId?: string; // Optional user ID for login responses
+    userId?: string;
 }
 
 export interface atomicResponse<M> {

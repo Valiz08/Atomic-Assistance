@@ -112,9 +112,9 @@ body{
     padding: 1em;
     flex-direction: column;
     align-items: flex-end;
-    word-break: break-word;   /* <-- Esto parte palabras largas y URLs */
-    overflow-wrap: break-word; /* Compatibilidad extra */
-    max-width: 80%;           /* Opcional: limita el ancho máximo */
+    word-break: break-word; 
+    overflow-wrap: break-word;
+    max-width: 80%;
 }
 .footer {
     display: flex;
@@ -154,10 +154,10 @@ body{
     border-radius: 50%;
     background: #187caa;
     transition: 0.2s ease;
-    margin-left: auto; /* <-- Esto lo empuja a la derecha */
-    align-items: center; /* Centra el contenido del botón verticalmente */
-    justify-content: center; /* Centra el contenido del botón horizontalmente */
-    display: none; /* Oculto por defecto */
+    margin-left: auto;
+    align-items: center;
+    justify-content: center;
+    display: none;
 }
 
 .footerContent input:valid ~ button {

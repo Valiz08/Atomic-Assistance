@@ -1,0 +1,57 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: linear-gradient(135deg, #5e60ce, #74a955);
+  font-family: 'Segoe UI', sans-serif;
+  color: black;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  text-align: center;
+}
+
+.form{
+    display: flex;
+    background: white;
+    padding: 2em;
+    border-radius: 8px;
+    height: 70%;
+    padding-left: 5em;
+    padding-top: 6em;
+    padding-right: 5em;
+    padding-bottom: 6em;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    gap: 2em;
+    flex-direction: column;
+    align-items: center;
+    align-content: center;
+    flex-wrap: nowrap;
+    justify-content: center;
+}
+
+.cta-button {
+  background: #74a955;
+  color: #ffffff;
+  border: none;
+  padding: 1em 2em;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.registerPrompt{
+    color: #ffffff;
+}
+.registerPrompt a {
+    color: #64d143;
+    text-decoration: none;
+}

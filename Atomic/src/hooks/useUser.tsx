@@ -42,8 +42,23 @@ export const useUser = () => {
             return "Error al conectar con la IA.";
         }
     }
+    const uploadFile= async (id: string, file: File) => {
+        try {
+            const response = await fetch("https://wscex.atomic-assistance.es/api/uploadFile", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id, file }),
+            });
+            if (!response.ok) throw new Error("Login failed");
+            const data: commonResponse<any> = await response.json();
+            return data.message;
+        } catch (error) {
+            console.error("Login error:", error);
+        }
+    }
     return{
         login,
-        ask
+        ask,
+        uploadFile
     }
 }

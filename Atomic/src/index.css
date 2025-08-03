@@ -46,9 +46,19 @@ body {
   min-height: 100vh;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+ /*boton*/
+
+.cta-button {
+  background-color: #ffffff;
+  color: #5e60ce;
+  border: none;
+  padding: 1em 2em;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 button {
@@ -69,7 +79,7 @@ button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
-
+/* responsive*/
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

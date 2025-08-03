@@ -1,9 +1,9 @@
 export namespace AuthTypes {
     export interface login {
-        id?: string; // Optional ID for the user
+        id?: string;
         username: string;
         password: string;
-        token?: string; // Optional token for authenticated requests
+        token?: string; 
     }
 
     export interface logout {
@@ -13,6 +13,6 @@ export namespace AuthTypes {
     export interface register {
         username: string;
         password: string;
-        email?: string; // Optional email for registration
+        email?: string;
     }
 }
