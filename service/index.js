@@ -16,7 +16,7 @@ const user = require('./routes/user.routes');
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-app.use('api/', user)
+app.use('/api', user)
 
 app.listen(PORT, () => {
   console.log(`Servidor backend escuchando en http://localhost:${PORT}`);
