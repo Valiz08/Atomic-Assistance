@@ -1,6 +1,7 @@
 require('dotenv').config();
 const bcrypt = require('bcrypt');
 const { clientBD } = require('../BBDD/auth');
+const { MongoClient } = require('mongodb');
 const MONGO_URI = process.env.MONGO_URI
 const client = new MongoClient(MONGO_URI);
 
