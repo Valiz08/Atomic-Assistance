@@ -43,6 +43,9 @@ export const useUser = () => {
         }
     }
     const uploadFile= async (id: string, file: File) => {
+        const formData = new FormData();
+        formData.append("archivo", file);
+        formData.append("userId", id);
         try {
             const response = await fetch("https://wscex.atomic-assistance.es/api/uploadFile", {
                 method: "POST",

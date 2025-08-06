@@ -4,6 +4,8 @@ const { clientBD } = require('../BBDD/auth');
 const { MongoClient } = require('mongodb');
 const MONGO_URI = process.env.MONGO_URI
 const client = new MongoClient(MONGO_URI);
+const { subirArchivoPorFTP } = require('../services/ftp');
+
 
 exports.login = async (req, res, next) => {
   const { username, password } = req.body;
@@ -52,14 +54,22 @@ exports.ask = async (req, res, next) => {
   }
 };
 
-exports.uploadFile = async(req, res) => {
-  const {file, id} = req.body
-  try{
+exports.uploadFile = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const archivo = req.file;
 
-  } catch(Error){
+    if (!archivo || !userId) {
+      return res.status(400).json({ message: "Faltan datos (archivo o userId)" });
+    }
 
+    await subirArchivoPorFTP(archivo.buffer, userId, archivo.originalname);
+
+    res.status(200).json({ message: "Archivo subido correctamente al servidor FTP." });
+  } catch (error) {
+    res.status(500).json({ message: "Error al subir el archivo", error: error.message });
   }
-}
+};
 
 function updateSession(userId, message, reply) {
   const db = client.db('atomicApp');
