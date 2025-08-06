@@ -24,7 +24,7 @@ export default function Header() {
     return(
         <>
             <div className={styles["header"]}>
-                <h1>Atomic Assistance</h1>
+                <h1><a href="/dashboard">Atomic Assistance</a></h1>
                 <React.Fragment>
                     <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'center' }}>
                         <Tooltip title="Account settings">

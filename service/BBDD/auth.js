@@ -1,24 +1,24 @@
-const mongoose = require('mongoose');
+const { MongoClient } = require('mongodb');
 
-const AuthSchema = new mongoose.Schema({
-  username: String,
-  password: String
-});
+const client = new MongoClient(process.env.MONGO_URI);
 
-const Auth = mongoose.model('Auth', AuthSchema);
+let db = null;
 
-async function userBBDD() {
-    const client = new MongoClient(uri, { useUnifiedTopology: true });
-    try {
-        await client.connect();
-        const db = client.db('atomicdb');
-        const usuarios = db.collection('users');
-        console.log('Conectado a la colección usuarios');
-        return usuarios;
-    } catch (err) {
-        console.error('Error conectando a MongoDB:', err);
-        throw err;
-    }
+async function connectDB() {
+  if (!db) {
+    await client.connect();
+    db = client.db('atomicApp');
+    console.log('Conectado a MongoDB');
+  }
+  return db;
 }
 
-module.exports = { Auth, userBBDD };
+function getDB() {
+  if (!db) throw new Error('Debes conectar primero con connectDB');
+  return db;
+}
+
+module.exports = {
+  connectDB,
+  getDB,
+};
