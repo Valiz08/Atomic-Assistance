@@ -56,7 +56,7 @@ exports.ask = async (req, res, next) => {
 
 exports.uploadFile = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const userId = req.body.userId;
     const archivo = req.file;
 
     if (!archivo || !userId) {
