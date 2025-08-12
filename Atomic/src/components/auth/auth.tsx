@@ -1,10 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import styles from "./auth.module.css";
 import { useUser } from "../../hooks/useUser";
 import { Button, FormControl, IconButton, InputAdornment, InputLabel, OutlinedInput, TextField } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { useSelector } from "react-redux";
-import type { RootState } from "@reduxjs/toolkit/query";
 import PopUp from "../popUp/popUp";
 
 export default function Base() {

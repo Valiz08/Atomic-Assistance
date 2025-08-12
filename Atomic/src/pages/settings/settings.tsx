@@ -1,10 +1,10 @@
-import { useSelector } from "react-redux";
+// import { useSelector } from "react-redux";
 import Header from "../../components/header/header";
 import styles from "./settings.module.css"
 import React, { useState, type FormEvent } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
-import type { RootState } from "@reduxjs/toolkit/query";
-import { useUser } from "../../hooks/useUser";
+//import type { RootState } from "@reduxjs/toolkit/query";
+//import { useUser } from "../../hooks/useUser";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
@@ -14,8 +14,8 @@ export default function Settings(){
 
     const [file, setFile] = useState<File | null>(null);
     const [numPages, setNumPages] = useState<number | null>(null);
-    const session = useSelector((state: RootState) => state.user.session);
-    const { uploadFile } = useUser()
+    //const session = useSelector((state: RootState) => state.user.session);
+    //const { uploadFile } = useUser()
 
 
     function onFileChange(event: React.ChangeEvent<HTMLInputElement>) {

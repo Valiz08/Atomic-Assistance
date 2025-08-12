@@ -7,7 +7,6 @@ import { AuthProvider } from './hooks/useAuth.tsx'
 import Settings from './pages/settings/settings.tsx'
 
 import { pdfjs } from 'react-pdf';
-import * as pdfjsLib from 'pdfjs-dist/build/pdf';
 
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker?url';
 
