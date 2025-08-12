@@ -26,9 +26,10 @@ export default function Settings(){
     }
 
     const handlerSubmit = async(event: FormEvent<HTMLButtonElement>) =>{
+        console.log(file)
         event.preventDefault();
         if(file) {
-            const mssg = await uploadFile(session.id, file);
+            //const mssg = await uploadFile(session.id, file);
         }else{
             console.error('No se puede subir, si esta vacio');
         }
