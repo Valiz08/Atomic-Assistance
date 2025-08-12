@@ -2,7 +2,8 @@ import styles from "./bases.module.css";
 import PopUp from "./popUp/popUp";
 import Auth from "./auth/auth";
 import { useSelector } from "react-redux";
-import type { RootState } from "@reduxjs/toolkit/query";
+import type { RootState } from '../store/store';
+
 export default function Base() {
     const session = useSelector((state: RootState) => state.user.session);
 

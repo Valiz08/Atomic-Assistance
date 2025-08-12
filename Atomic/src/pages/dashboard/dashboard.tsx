@@ -1,7 +1,7 @@
 import Header from '../../components/header/header';
 import styles from './dashboard.module.css';
 import { useSelector } from 'react-redux';
-import type { RootState } from '@reduxjs/toolkit/query';
+import type { RootState } from '../../store/store';
 import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard(){

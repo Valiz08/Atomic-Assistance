@@ -3,7 +3,8 @@ import styles from "./popUp.module.css";
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import { useUser } from "../../hooks/useUser";
 import { useSelector } from "react-redux";
-import type { RootState } from "@reduxjs/toolkit/query";
+import type { RootState } from '../../store/store';
+
 
 export default function Base() {
     const { ask } = useUser();

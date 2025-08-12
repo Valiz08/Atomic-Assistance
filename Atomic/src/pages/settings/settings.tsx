@@ -1,9 +1,10 @@
 // import { useSelector } from "react-redux";
 import Header from "../../components/header/header";
 import styles from "./settings.module.css"
-import React, { useState, type FormEvent } from 'react';
+import React, { useState /** , type FormEvent*/ } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
-//import type { RootState } from "@reduxjs/toolkit/query";
+//import type { RootState } from '../../store/store';
+
 //import { useUser } from "../../hooks/useUser";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -25,15 +26,15 @@ export default function Settings(){
         }
     }
 
-    const handlerSubmit = async(event: FormEvent<HTMLButtonElement>) =>{
-        console.log(file)
-        event.preventDefault();
-        if(file) {
-            //const mssg = await uploadFile(session.id, file);
-        }else{
-            console.error('No se puede subir, si esta vacio');
-        }
-    }
+    //const handlerSubmit = async(event: FormEvent<HTMLButtonElement>) =>{
+    //    console.log(file)
+    //    event.preventDefault();
+    //    if(file) {
+    //        //const mssg = await uploadFile(session.id, file);
+    //    }else{
+    //        console.error('No se puede subir, si esta vacio');
+    //    }
+    //}
 
     function onLoadSuccess({ numPages }: { numPages: number }) {
         setNumPages(numPages);
@@ -76,7 +77,6 @@ export default function Settings(){
                                 }  
                             </div>
                             <label htmlFor="submit" className={styles["cta-button"]}>Actualizar</label>
-                            <input id="submit" type="button" className={styles["input"]} onClick={handlerSubmit}/>
                         </section>
                     </section>
                 </div>
