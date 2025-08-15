@@ -1,37 +1,36 @@
-const ftp = require("basic-ftp");
-const fs = require("fs");
+const Client = require('ssh2-sftp-client')
 
-async function subirArchivoPorFTP(buffer, carpetaUsuario, nombreArchivo) {
-  const client = new ftp.Client();
-  client.ftp.verbose = false;
+async function subirArchivoSFTP(buffer, carpetaUsuario) {
+    const sftp = new Client();
+    try {
+        await sftp.connect({
+            host: process.env.SERVER_HOST.trim(),
+            port: 22,
+            username: process.env.SERVER_USER.trim(),
+            password: process.env.SERVER_PASS.trim()
+        });
 
-  try {
-    await client.access({
-      host: 'ftp.'.process.env.SERVER_IP,
-      user: process.env.SERVER_USER,
-      password: process.env.SERVER_PASS,
-      secure: false, //  true si FTPS
-    });
+        // Crear carpeta si no existe
+        const remoteDir = `/var/www/vhosts/atomic-assistance.es/uploads/${carpetaUsuario}`;
+        try { await sftp.mkdir(remoteDir, true); } catch {}
 
-    // Verificar o crear carpeta del usuario
-    await client.ensureDir(`/uploads/${carpetaUsuario}`);
-    await client.cd(`/uploads/${carpetaUsuario}`);
+        // Subir archivo directamente desde buffer
+        const remotePath = `${remoteDir}/${carpetaUsuario}.pdf`;
+        try{
+            await sftp.put(buffer, remotePath);
+        } catch(err){
+            console.log(err)
+        }
 
-    // Guardar temporalmente ,el archivo 
-    const rutaTemporal = `./temp_${nombreArchivo}`;
-    fs.writeFileSync(rutaTemporal, buffer);
-    await client.uploadFrom(rutaTemporal, nombreArchivo);
-
-    // Borrar archivo temporal local
-    fs.unlinkSync(rutaTemporal);
-
-    return true;
-  } catch (error) {
-    console.error("Error FTP:", error);
-    throw error;
-  } finally {
-    client.close();
-  }
+        console.log("Archivo subido correctamente via SFTP");
+        return true;
+    } catch (err) {
+        console.error("Error SFTP:", err);
+        throw err;
+    } finally {
+        sftp.end();
+    }
 }
 
-module.exports = { subirArchivoPorFTP };
+
+module.exports = { subirArchivoSFTP };

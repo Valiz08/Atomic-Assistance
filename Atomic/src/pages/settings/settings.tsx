@@ -1,8 +1,12 @@
 // import { useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import Header from "../../components/header/header";
+import { useUser } from "../../hooks/useUser";
 import styles from "./settings.module.css"
-import React, { useState /** , type FormEvent*/ } from 'react';
+import React, { useState, /** , type FormEvent*/ 
+type FormEvent} from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
+import type { RootState } from "../../store/store";
 //import type { RootState } from '../../store/store';
 
 //import { useUser } from "../../hooks/useUser";
@@ -15,8 +19,8 @@ export default function Settings(){
 
     const [file, setFile] = useState<File | null>(null);
     const [numPages, setNumPages] = useState<number | null>(null);
-    //const session = useSelector((state: RootState) => state.user.session);
-    //const { uploadFile } = useUser()
+    const session = useSelector((state: RootState) => state.user.session);
+    const { uploadFile } = useUser()
 
 
     function onFileChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -26,15 +30,15 @@ export default function Settings(){
         }
     }
 
-    //const handlerSubmit = async(event: FormEvent<HTMLButtonElement>) =>{
-    //    console.log(file)
-    //    event.preventDefault();
-    //    if(file) {
-    //        //const mssg = await uploadFile(session.id, file);
-    //    }else{
-    //        console.error('No se puede subir, si esta vacio');
-    //    }
-    //}
+    const handlerSubmit = async(event: React.MouseEvent<HTMLLabelElement>) =>{
+        console.log(file)
+        event.preventDefault();
+        if(file) {
+            await uploadFile(session.id, file);
+        }else{
+            console.error('No se puede subir, si esta vacio');
+        }
+    }
 
     function onLoadSuccess({ numPages }: { numPages: number }) {
         setNumPages(numPages);
@@ -76,7 +80,7 @@ export default function Settings(){
                                     <></>
                                 }  
                             </div>
-                            <label htmlFor="submit" className={styles["cta-button"]}>Actualizar</label>
+                            <label htmlFor="submit" className={styles["cta-button"]} onClick={handlerSubmit}>Actualizar</label>
                         </section>
                     </section>
                 </div>

@@ -8,7 +8,7 @@ export const useUser = () => {
 
     const login = async (username: string, password: string) => {
         try {
-            const response = await fetch("https://wscex.atomic-assistance.es/api/login", {
+            const response = await fetch("http://localhost:3088/api/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username, password }),
@@ -47,7 +47,7 @@ export const useUser = () => {
         formData.append("archivo", file);
         formData.append("userId", id);
         try {
-            const response = await fetch("https://wscex.atomic-assistance.es/api/uploadFile", {
+            const response = await fetch("http://localhost:3088/api/uploadFile", {
                 method: "POST",
                 body: formData,
             });

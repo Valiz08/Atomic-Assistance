@@ -4,7 +4,7 @@ const { clientBD } = require('../BBDD/auth');
 const { MongoClient } = require('mongodb');
 const MONGO_URI = process.env.MONGO_URI
 const client = new MongoClient(MONGO_URI);
-const { subirArchivoPorFTP } = require('../services/ftp');
+const { subirArchivoSFTP } = require('../services/ftp');
 
 
 exports.login = async (req, res, next) => {
@@ -63,7 +63,7 @@ exports.uploadFile = async (req, res) => {
       return res.status(400).json({ message: "Faltan datos (archivo o userId)" });
     }
 
-    await subirArchivoPorFTP(archivo.buffer, userId, archivo.originalname);
+    await subirArchivoSFTP(archivo.buffer, userId);
 
     res.status(200).json({ message: "Archivo subido correctamente al servidor FTP." });
   } catch (error) {
