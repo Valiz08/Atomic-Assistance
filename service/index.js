@@ -1,23 +1,47 @@
 require('dotenv').config();
-const express = require("express");
-const { MongoClient } = require('mongodb');
-const cors = require("cors");
-const { OpenAI } = require("openai");
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const cors = require('cors');
+const connectDB = require('./utils/db');
+
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: { origin: '*', methods: ['GET', 'POST'] }
+});
+
 const PORT = process.env.PORT || 3088;
-const MONGO_URI = process.env.MONGO_URI
-const client = new MongoClient(MONGO_URI);
-const bcrypt = require('bcrypt');
 
 app.use(cors());
 app.use(express.json());
 
-const user = require('./routes/user.routes');
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-app.use('/api', user)
+// Hacer io accesible en los controllers vía req.app.get('io')
+app.set('io', io);
 
-app.listen(PORT, () => {
-  console.log(`Servidor backend escuchando en http://localhost:${PORT}`);
+// Rutas
+const userRoutes = require('./routes/user.routes');
+const recordRoutes = require('./routes/record.routes');
+app.use('/api', userRoutes);
+app.use('/api', recordRoutes);
+
+// Socket.IO
+io.on('connection', (socket) => {
+  console.log('Cliente conectado:', socket.id);
+
+  socket.on('join_room', (userId) => {
+    socket.join(userId);
+    console.log(`Socket ${socket.id} unido a sala ${userId}`);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Cliente desconectado:', socket.id);
+  });
+});
+
+// Conectar MongoDB y arrancar servidor
+connectDB().then(() => {
+  server.listen(PORT, () => {
+    console.log(`Servidor escuchando en http://localhost:${PORT}`);
+  });
 });
