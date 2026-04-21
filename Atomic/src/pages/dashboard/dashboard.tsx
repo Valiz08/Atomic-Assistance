@@ -8,10 +8,11 @@ export default function Dashboard(){
     const session = useSelector((state: RootState) => state.user.session);
     const navigate = useNavigate();
 
-
     const handlerSecction = (e: string) => {
         if(e == 'settings'){
             navigate("/settings");
+        } else if(e == 'chat'){
+            navigate("/chat");
         }
     }
     return(
@@ -23,16 +24,19 @@ export default function Dashboard(){
 
                 <section className={styles.cardsGrid}>
                     <div className={`${styles.card} ${styles.card1}`}>
-                    <h3>🔔Notificaciones</h3>
-                    <p><strong>20</strong> pendientes</p>
+                        <h3>Notificaciones</h3>
+                        <strong>20</strong>
+                        <p>pendientes</p>
                     </div>
-                    <div className={`${styles.card} ${styles.card2}`}>
-                    <h3>💬Mensajes</h3>
-                    <p><strong>3</strong> nuevas conversaciones</p>
+                    <div className={`${styles.card} ${styles.card2}`} onClick={() => handlerSecction('chat')}>
+                        <h3>Mensajes</h3>
+                        <strong>3</strong>
+                        <p>nuevas conversaciones</p>
                     </div>
                     <div className={`${styles.card} ${styles.card3}`} onClick={() => handlerSecction('settings')}>
-                    <h3>⚙️Configuración</h3>
-                    <p>Configura tu plataforma</p>
+                        <h3>Configuración</h3>
+                        <strong>→</strong>
+                        <p>Configura tu plataforma</p>
                     </div>
                 </section>
             </section>

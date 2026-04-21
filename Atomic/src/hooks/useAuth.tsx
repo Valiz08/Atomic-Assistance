@@ -1,55 +1,42 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import {jwtDecode} from 'jwt-decode';
+import React, { createContext, useContext, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { auth } from '../store/slices/app.slice';
 
-interface JwtPayload {
-  sub: string;
-  exp: number;
-  [key: string]: any;
-}
+const TWO_HOURS = 2 * 60 * 60 * 1000;
+
+const isSessionValid = (): boolean => {
+  try {
+    const raw = localStorage.getItem('session');
+    if (!raw) return false;
+    const session = JSON.parse(raw);
+    return Date.now() - session.loginTime <= TWO_HOURS;
+  } catch {
+    return false;
+  }
+};
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  user: JwtPayload | null;
+  setAuthenticated: (value: boolean) => void;
   logout: () => void;
-  checkToken: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<JwtPayload | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(isSessionValid);
+  const dispatch = useDispatch();
 
-  const checkToken = () => {
-    const token = localStorage.getItem('token');
-    if (!token) return logout();
-
-    try {
-      const decoded: JwtPayload = jwtDecode(token);
-      const now = Date.now() / 1000;
-      if (decoded.exp < now) {
-        logout();
-      } else {
-        setIsAuthenticated(true);
-        setUser(decoded);
-      }
-    } catch (e) {
-      logout();
-    }
-  };
+  const setAuthenticated = (value: boolean) => setIsAuthenticated(value);
 
   const logout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('session');
+    dispatch(auth({ id: undefined, username: '', password: '' }));
     setIsAuthenticated(false);
-    setUser(null);
   };
 
-  useEffect(() => {
-    checkToken();
-  }, []);
-
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, logout, checkToken }}>
+    <AuthContext.Provider value={{ isAuthenticated, setAuthenticated, logout }}>
       {children}
     </AuthContext.Provider>
   );

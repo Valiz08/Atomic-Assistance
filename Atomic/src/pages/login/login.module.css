@@ -2,9 +2,9 @@ body, html {
   margin: 0;
   padding: 0;
   height: 100%;
-  background: linear-gradient(135deg, #5e60ce, #74a955);
-  font-family: 'Segoe UI', sans-serif;
-  color: black;
+  background: var(--bg-surface);
+  font-family: "Space Grotesk", sans-serif;
+  color: var(--text-primary);
 }
 
 .container {
@@ -14,44 +14,114 @@ body, html {
   justify-content: center;
   min-height: 100vh;
   text-align: center;
+  padding: 20px;
+  background: var(--bg-surface);
+  background-image:
+    radial-gradient(circle, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
 
-.form{
-    display: flex;
-    background: white;
-    padding: 2em;
-    border-radius: 8px;
-    height: 70%;
-    padding-left: 5em;
-    padding-top: 6em;
-    padding-right: 5em;
-    padding-bottom: 6em;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    gap: 2em;
-    flex-direction: column;
-    align-items: center;
-    align-content: center;
-    flex-wrap: nowrap;
-    justify-content: center;
+.form {
+  display: flex;
+  background: var(--bg-raised);
+  border: 1px solid var(--border-strong);
+  padding: 2.5rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  gap: 1rem;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  width: 100%;
+  max-width: 420px;
+  box-sizing: border-box;
+}
+
+.form input,
+.form select {
+  width: 100%;
+  margin: 6px 0;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  box-sizing: border-box;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form input::placeholder,
+.form select::placeholder {
+  color: var(--text-muted);
+}
+
+.form input:focus,
+.form select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
 }
 
 .cta-button {
-  background: #74a955;
+  background: var(--accent);
   color: #ffffff;
   border: none;
-  padding: 1em 2em;
-  font-size: 1rem;
-  font-weight: bold;
-  border-radius: 8px;
+  padding: 11px 24px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  width: 100%;
+  letter-spacing: 0.01em;
+  font-family: inherit;
+  margin-top: 0.5rem;
 }
 
-.registerPrompt{
-    color: #ffffff;
+.cta-button:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 0 24px rgba(99, 102, 241, 0.3);
 }
+
+.registerPrompt {
+  color: var(--text-muted);
+  margin-top: 1rem;
+  font-size: 0.85rem;
+}
+
 .registerPrompt a {
-    color: #64d143;
-    text-decoration: none;
+  color: var(--accent-hover);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.registerPrompt a:hover {
+  color: var(--text-primary);
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .container { padding: 20px; }
+  .form { padding: 2rem; max-width: 380px; }
+  .cta-button { padding: 10px 22px; font-size: 0.875rem; }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .container { padding: 15px; }
+  .form { padding: 2rem; max-width: 100%; }
+  .form input, .form select { padding: 10px 12px; font-size: 0.9rem; }
+  .cta-button { padding: 10px 20px; font-size: 0.9rem; }
+  .registerPrompt { font-size: 0.825rem; }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  .container { padding: 10px; }
+  .form { padding: 1.5rem; max-width: 100%; }
+  .form input, .form select { padding: 10px; font-size: 0.875rem; }
+  .cta-button { padding: 10px 16px; font-size: 0.875rem; }
+  .registerPrompt { font-size: 0.8rem; }
 }

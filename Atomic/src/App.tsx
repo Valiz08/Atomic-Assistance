@@ -5,12 +5,11 @@ import Dashboard from './pages/dashboard/dashboard.tsx'
 import ProtectedRoute from './components/protectedRoute.tsx'
 import { AuthProvider } from './hooks/useAuth.tsx'
 import Settings from './pages/settings/settings.tsx'
+import Chat from './pages/chat/chat.tsx'
 
 import { pdfjs } from 'react-pdf';
 
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker?url';
-
-pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 const App = () => {
   return (
@@ -31,6 +30,14 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <Settings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/chat"
+            element={
+              <ProtectedRoute>
+                <Chat />
               </ProtectedRoute>
             }
           />

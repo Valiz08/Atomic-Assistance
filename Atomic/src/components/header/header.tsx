@@ -10,16 +10,24 @@ import Tooltip from '@mui/material/Tooltip';
 import PersonAdd from '@mui/icons-material/PersonAdd';
 import Settings from '@mui/icons-material/Settings';
 import Logout from '@mui/icons-material/Logout';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 import styles from './header.module.css';
 
 export default function Header() {
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const navigate = useNavigate();
+    const { logout } = useAuth();
     const open = Boolean(anchorEl);
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
     };
     const handleClose = () => {
         setAnchorEl(null);
+    };
+    const handleLogout = () => {
+        logout();
+        navigate('/');
     };
     return(
         <>
@@ -96,7 +104,7 @@ export default function Header() {
                         </ListItemIcon>
                         Settings
                         </MenuItem>
-                        <MenuItem onClick={handleClose}>
+                        <MenuItem onClick={handleLogout}>
                         <ListItemIcon>
                             <Logout fontSize="small" />
                         </ListItemIcon>
