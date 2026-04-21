@@ -1,37 +1,47 @@
 require('dotenv').config();
-const express = require("express");
-const cors = require("cors");
-const { OpenAI } = require("openai");
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const cors = require('cors');
+const connectDB = require('./utils/db');
 
 const app = express();
-const PORT = process.env.PORT || 3088;
-app.use(cors());
-app.use(express.json());
-console.log("DEBUG ENV:", JSON.stringify(process.env, null, 2));
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-app.post("/api/ask", async (req, res) => {
-  const { message } = req.body;
-  try {
-    console.log("Received message:", message);
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        { role: "system", content: "Eres un asistente útil para dudas sobre productos llamado Atom" },
-        { role: "user", content: message }
-      ],
-      max_tokens: 150,
-    });
-    const reply = completion.choices[0].message.content;
-    res.status(200).json( reply ? { reply: reply } : { reply: "No se pudo generar una respuesta." });
-  } catch (error) {
-    console.log("ERROR AL CONECTAR CON OPENAI:");
-    console.log(error.response?.data || error.message || error);
-    res.status(500).json({ reply: "Error al conectar con la IA. "+error });
-  }
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: { origin: '*', methods: ['GET', 'POST'] }
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor backend escuchando en http://localhost:${PORT}`);
+const PORT = process.env.PORT || 3088;
+
+app.use(cors());
+app.use(express.json());
+
+// Hacer io accesible en los controllers vía req.app.get('io')
+app.set('io', io);
+
+// Rutas
+const userRoutes = require('./routes/user.routes');
+const recordRoutes = require('./routes/record.routes');
+app.use('/api', userRoutes);
+app.use('/api', recordRoutes);
+
+// Socket.IO
+io.on('connection', (socket) => {
+  console.log('Cliente conectado:', socket.id);
+
+  socket.on('join_room', (userId) => {
+    socket.join(userId);
+    console.log(`Socket ${socket.id} unido a sala ${userId}`);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Cliente desconectado:', socket.id);
+  });
+});
+
+// Conectar MongoDB y arrancar servidor
+connectDB().then(() => {
+  server.listen(PORT, () => {
+    console.log(`Servidor escuchando en http://localhost:${PORT}`);
+  });
 });
