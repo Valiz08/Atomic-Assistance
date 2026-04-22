@@ -49,6 +49,12 @@ io.on('connection', (socket) => {
   });
 });
 
+// Error handler — muestra el error en la respuesta para debug
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ error: err.message, stack: err.stack });
+});
+
 // Conectar MongoDB y arrancar servidor
 connectDB().then(() => {
   server.listen(PORT, () => {
