@@ -5,7 +5,11 @@ const OpenAI = require("openai");
 const Chunk = require("../models/chuncks");
 const { subirArchivoSFTP } = require('../services/ftp');
 const { v4: uuidv4 } = require('uuid');
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+let openai;
+const getOpenAI = () => {
+  if (!openai) openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  return openai;
+};
 const User = require("../models/user");
 const recordDB = require("../models/record");
 const classifyMssg = require("../services/ai");
@@ -186,7 +190,7 @@ async function processChunk(buffer, userId) {
 
   let chunkId = 0;
   for (const chunk of chunks) {
-    const response = await openai.embeddings.create({
+    const response = await getOpenAI().embeddings.create({
       model: "text-embedding-3-small",
       input: chunk
     });
@@ -198,7 +202,7 @@ async function processChunk(buffer, userId) {
 }
 
 async function getOpenAIResponse(messages) {
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAI().chat.completions.create({
     model: "gpt-4o-mini",
     messages
   });
