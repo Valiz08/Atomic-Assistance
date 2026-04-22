@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import type { commonResponse } from "../services/interfaces/responses.interfaces";
+import { useState } from 'react';
 
 export const useConversation = () => {
   const [conversations, setConversations] = useState<any[]>([]);
