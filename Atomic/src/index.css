@@ -2,25 +2,25 @@
 
 :root {
   /* Backgrounds */
-  --bg-base:     #07070d;
-  --bg-surface:  #0d0d18;
-  --bg-raised:   #13131f;
-  --bg-hover:    #1a1a2e;
+  --bg-base:     #181825;
+  --bg-surface:  #1e1e2e;
+  --bg-raised:   #252538;
+  --bg-hover:    #2d2d42;
 
   /* Borders */
-  --border:        rgba(255, 255, 255, 0.06);
-  --border-strong: rgba(255, 255, 255, 0.12);
-  --border-accent: rgba(99, 102, 241, 0.35);
+  --border:        rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  --border-accent: rgba(99, 102, 241, 0.4);
 
   /* Text */
-  --text-primary:   #e8e8f0;
-  --text-secondary: #8888a8;
-  --text-muted:     #50506a;
+  --text-primary:   #e2e2f0;
+  --text-secondary: #9a9abf;
+  --text-muted:     #6060808a;
 
   /* Accent — indigo */
   --accent:        #6366f1;
   --accent-hover:  #818cf8;
-  --accent-subtle: rgba(99, 102, 241, 0.1);
+  --accent-subtle: rgba(99, 102, 241, 0.12);
   --accent-glow:   0 0 24px rgba(99, 102, 241, 0.25);
 
   /* Status */
@@ -36,9 +36,9 @@
   --radius-xl: 24px;
 
   /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.6);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.6);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.4);
 
   /* Typography */
   font-family: "Space Grotesk", -apple-system, BlinkMacSystemFont, sans-serif;
@@ -96,12 +96,14 @@ button {
   color: var(--text-secondary);
   cursor: pointer;
   transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+  box-shadow: var(--shadow-sm);
 }
 
 button:hover {
   border-color: var(--border-accent);
   color: var(--text-primary);
   background-color: var(--bg-hover);
+  box-shadow: none;
 }
 
 button:focus,

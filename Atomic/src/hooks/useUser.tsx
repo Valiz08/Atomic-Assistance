@@ -8,7 +8,7 @@ export const useUser = () => {
 
     const getIAState = async (userId: string) => {
         try {
-            const response = await fetch(`http://localhost:3088/api/user/${userId}`);
+            const response = await fetch(`/api/user/${userId}`);
             if (!response.ok) throw new Error('Failed to get user state');
             return await response.json() as { ia: boolean; hasPdf: boolean; pdfName: string | null };
         } catch (error) {
@@ -19,7 +19,7 @@ export const useUser = () => {
 
     const login = async (username: string, password: string) => {
         try {
-            const response = await fetch("http://localhost:3088/api/login", {
+            const response = await fetch("/api/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username, password }),
@@ -40,7 +40,7 @@ export const useUser = () => {
     }
     const ask = async (message: string, userId: string) => {
         try {
-            const response = await fetch("http://localhost:3088/api/ask", {
+            const response = await fetch("/api/ask", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ message, userId}),
@@ -59,7 +59,7 @@ export const useUser = () => {
         formData.append("archivo", file);
         formData.append("userId", id);
         try {
-            const response = await fetch("http://localhost:3088/api/uploadFile", {
+            const response = await fetch("/api/uploadFile", {
                 method: "POST",
                 body: formData,
             });
@@ -73,7 +73,7 @@ export const useUser = () => {
     }
     const toggleIA = async (userId: string) => {
         try {
-            const response = await fetch("http://localhost:3088/api/toggleIA", {
+            const response = await fetch("/api/toggleIA", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ userId }),
@@ -87,7 +87,7 @@ export const useUser = () => {
     }
     const sendMessage = async (message: string, userId: string) => {
         try {
-            const response = await fetch("http://localhost:3088/api/sendMessage", {
+            const response = await fetch("/api/sendMessage", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ message, userId }),

@@ -3,6 +3,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
+const path = require('path');
 const connectDB = require('./utils/db');
 
 const app = express();
@@ -19,11 +20,20 @@ app.use(express.json());
 // Hacer io accesible en los controllers vía req.app.get('io')
 app.set('io', io);
 
-// Rutas
+// Rutas API
 const userRoutes = require('./routes/user.routes');
 const recordRoutes = require('./routes/record.routes');
 app.use('/api', userRoutes);
 app.use('/api', recordRoutes);
+
+// Servir frontend estático (build de React)
+const PUBLIC_DIR = path.join(__dirname, 'public');
+app.use(express.static(PUBLIC_DIR));
+
+// SPA fallback: todas las rutas no-API devuelven index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
+});
 
 // Socket.IO
 io.on('connection', (socket) => {

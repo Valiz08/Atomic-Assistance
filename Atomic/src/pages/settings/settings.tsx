@@ -19,7 +19,7 @@ export default function Settings() {
   const { uploadFile, toggleIA, getIAState } = useUser();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const pdfUrl = session?.id ? `http://localhost:3088/api/user/${session.id}/pdf` : null;
+  const pdfUrl = session?.id ? `/api/user/${session.id}/pdf` : null;
 
   useEffect(() => {
     if (session?.id) {

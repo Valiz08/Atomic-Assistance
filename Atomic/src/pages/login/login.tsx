@@ -9,14 +9,14 @@ import { useAuth } from '../../hooks/useAuth';
 const inputSx = {
     width: '100%',
     '& .MuiOutlinedInput-root': {
-        background: '#0d0d18',
+        background: '#252538',
         borderRadius: '6px',
-        color: '#e8e8f0',
+        color: '#e2e2f0',
         '& fieldset': {
-            borderColor: 'rgba(255,255,255,0.12)',
+            borderColor: 'rgba(255,255,255,0.15)',
         },
         '&:hover fieldset': {
-            borderColor: 'rgba(255,255,255,0.24)',
+            borderColor: 'rgba(255,255,255,0.28)',
         },
         '&.Mui-focused fieldset': {
             borderColor: '#6366f1',
@@ -24,16 +24,16 @@ const inputSx = {
         },
     },
     '& .MuiInputLabel-root': {
-        color: '#50506a',
+        color: '#9a9abf',
     },
     '& .MuiInputLabel-root.Mui-focused': {
-        color: '#6366f1',
+        color: '#818cf8',
     },
     '& .MuiInputAdornment-root .MuiSvgIcon-root': {
-        color: '#50506a',
+        color: '#9a9abf',
     },
     '& input': {
-        color: '#e8e8f0',
+        color: '#e2e2f0',
     },
 };
 

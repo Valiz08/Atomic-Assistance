@@ -7,7 +7,7 @@ export const useSocket = () => {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    socket = io('http://localhost:3088', {
+    socket = io(window.location.origin, {
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,

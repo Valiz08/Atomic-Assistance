@@ -8,7 +8,7 @@ export const useConversation = () => {
   const getConversations = async (userId: string) => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:3088/api/conversations/${userId}`);
+      const response = await fetch(`/api/conversations/${userId}`);
       if (!response.ok) throw new Error("Failed to fetch conversations");
       const data = await response.json();
       setConversations(data);
@@ -22,7 +22,7 @@ export const useConversation = () => {
 
   const getConversation = async (userId: string, clientId: string) => {
     try {
-      const response = await fetch(`http://localhost:3088/api/conversation/${userId}/${clientId}`);
+      const response = await fetch(`/api/conversation/${userId}/${clientId}`);
       if (!response.ok) throw new Error("Failed to fetch conversation");
       const data = await response.json();
       return data;
@@ -33,7 +33,7 @@ export const useConversation = () => {
 
   const sendClientMessage = async (userId: string, clientId: string, clientName: string, clientPhone: string, message: string) => {
     try {
-      const response = await fetch("http://localhost:3088/api/send-client-message", {
+      const response = await fetch("/api/send-client-message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, clientId, clientName, clientPhone, message }),
@@ -48,7 +48,7 @@ export const useConversation = () => {
 
   const sendUserResponse = async (userId: string, clientId: string, message: string) => {
     try {
-      const response = await fetch("http://localhost:3088/api/send-user-response", {
+      const response = await fetch("/api/send-user-response", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, clientId, message }),

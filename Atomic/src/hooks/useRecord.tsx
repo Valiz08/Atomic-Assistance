@@ -8,7 +8,7 @@ export const useRecord = () => {
     setLoading(true);
     try {
       console.log('[useRecord] fetching records for userId:', userId);
-      const response = await fetch(`http://localhost:3088/api/records/${userId}`);
+      const response = await fetch(`/api/records/${userId}`);
       console.log('[useRecord] response status:', response.status);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
@@ -25,7 +25,7 @@ export const useRecord = () => {
 
   const getRecord = async (userId: string, clientId: string) => {
     try {
-      const response = await fetch(`http://localhost:3088/api/record/${userId}/${clientId}`);
+      const response = await fetch(`/api/record/${userId}/${clientId}`);
       if (!response.ok) throw new Error("Failed to fetch record");
       return await response.json();
     } catch (error) {
@@ -35,7 +35,7 @@ export const useRecord = () => {
 
   const sendUserResponse = async (userId: string, clientId: string, message: string) => {
     try {
-      const response = await fetch("http://localhost:3088/api/send-user-response", {
+      const response = await fetch("/api/send-user-response", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, clientId, message }),
@@ -49,7 +49,7 @@ export const useRecord = () => {
 
   const addMessage = async (userId: string, clientId: string, message: string) => {
     try {
-      const response = await fetch('http://localhost:3088/api/record/message', {
+      const response = await fetch('/api/record/message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, clientId, message }),
