@@ -1,5 +1,5 @@
 require('dotenv').config();
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const pdf = require("pdf-parse");
 const OpenAI = require("openai");
 const Chunk = require("../models/chuncks");
