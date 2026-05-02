@@ -40,7 +40,16 @@ exports.getUser = async (req, res, next) => {
   try {
     const user = await User.findOne({ id: userId });
     if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
-    res.status(200).json({ ia: user.ia, hasPdf: user.hasPdf || false, pdfName: user.pdfName || null });
+    const filePath = path.join(UPLOADS_DIR, `${userId}.pdf`);
+    const fileExists = fs.existsSync(filePath);
+    if (fileExists && !user.hasPdf) {
+      await User.findOneAndUpdate({ id: userId }, { hasPdf: true });
+    }
+    res.status(200).json({
+      ia: user.ia !== false,
+      hasPdf: fileExists || user.hasPdf || false,
+      pdfName: user.pdfName || (fileExists ? `${userId}.pdf` : null)
+    });
   } catch (error) {
     next(error);
   }
@@ -59,9 +68,9 @@ exports.toggleIA = async (req, res, next) => {
   try {
     const user = await User.findOne({ id: userId });
     if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
-    user.ia = !user.ia;
-    await user.save();
-    res.status(200).json({ message: "IA toggled", ia: user.ia });
+    const newIa = user.ia === false ? true : false;
+    await User.findOneAndUpdate({ id: userId }, { $set: { ia: newIa } });
+    res.status(200).json({ message: "IA toggled", ia: newIa });
   } catch (error) {
     next(error);
   }

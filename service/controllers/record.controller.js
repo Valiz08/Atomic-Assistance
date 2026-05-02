@@ -1,5 +1,7 @@
 const Record = require('../models/record');
 const Conversation = require('../models/conversation');
+const User = require('../models/user');
+const axios = require('axios');
 
 exports.getRecords = async (req, res, next) => {
   const { userId } = req.params;
@@ -45,6 +47,26 @@ exports.addMessage = async (req, res, next) => {
       { new: true }
     );
     if (!record) return res.status(404).json({ message: 'Record no encontrado' });
+
+    // Enviar por WhatsApp si el negocio tiene credenciales configuradas
+    try {
+      const user = await User.findOne({ id: userId });
+      if (user?.whatsappToken && user?.whatsappPhoneNumberId) {
+        await axios.post(
+          `https://graph.facebook.com/v19.0/${user.whatsappPhoneNumberId}/messages`,
+          {
+            messaging_product: 'whatsapp',
+            to: clientId, // número de teléfono del contacto
+            type: 'text',
+            text: { body: message }
+          },
+          { headers: { Authorization: `Bearer ${user.whatsappToken}`, 'Content-Type': 'application/json' } }
+        );
+      }
+    } catch (wpErr) {
+      console.error('WhatsApp send error (non-critical):', wpErr.message);
+    }
+
     res.status(200).json(record);
   } catch (error) {
     next(error);

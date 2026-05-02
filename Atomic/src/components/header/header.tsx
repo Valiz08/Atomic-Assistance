@@ -10,7 +10,7 @@ import Tooltip from '@mui/material/Tooltip';
 import PersonAdd from '@mui/icons-material/PersonAdd';
 import Settings from '@mui/icons-material/Settings';
 import Logout from '@mui/icons-material/Logout';
-import { useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import styles from './header.module.css';
 
@@ -33,6 +33,12 @@ export default function Header() {
         <>
             <div className={styles["header"]}>
                 <h1><a href="/dashboard">Atomic Assistance</a></h1>
+                <nav className={styles.nav}>
+                    <NavLink to="/dashboard" className={({ isActive }) => isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>Dashboard</NavLink>
+                    <NavLink to="/chat" className={({ isActive }) => isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>Chat</NavLink>
+                    <NavLink to="/calendar" className={({ isActive }) => isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>Agenda</NavLink>
+                    <NavLink to="/settings" className={({ isActive }) => isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>Configuración</NavLink>
+                </nav>
                 <React.Fragment>
                     <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'center' }}>
                         <Tooltip title="Account settings">

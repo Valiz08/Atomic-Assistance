@@ -1,6 +1,11 @@
 import { useSelector } from "react-redux";
 import Header from "../../components/header/header";
 import { useUser } from "../../hooks/useUser";
+import { useWhatsapp } from "../../hooks/useWhatsapp";
+import { useWorkers } from "../../hooks/useWorkers";
+import type { Worker } from "../../hooks/useWorkers";
+import { useBusinessHours } from "../../hooks/useBusinessHours";
+import type { DaySchedule } from "../../hooks/useBusinessHours";
 import styles from "./settings.module.css";
 import React, { useState, useEffect, useRef } from 'react';
 import { Document, Page } from 'react-pdf';
@@ -17,7 +22,29 @@ export default function Settings() {
   const [savedPdfName, setSavedPdfName] = useState<string | null>(null);
   const session = useSelector((state: RootState) => state.user.session);
   const { uploadFile, toggleIA, getIAState } = useUser();
+  const { getConfig, saveConfig } = useWhatsapp();
+  const { getWorkers, addWorker, removeWorker } = useWorkers();
+  const { getHours, saveHours } = useBusinessHours();
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const [workers, setWorkers] = useState<Worker[]>([]);
+  const [newWorkerName, setNewWorkerName] = useState('');
+  const [workerSaving, setWorkerSaving] = useState(false);
+
+  const [schedule, setSchedule] = useState<DaySchedule[]>([]);
+  const [scheduleSaving, setScheduleSaving] = useState(false);
+  const [scheduleSaved, setScheduleSaved] = useState(false);
+
+  const DAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  const HOUR_OPTIONS = Array.from({ length: 18 }, (_, i) => i + 6); // 6..23
+  const DISPLAY_ORDER = [1, 2, 3, 4, 5, 6, 0]; // Lun-Dom
+
+  const [wpPhoneNumberId, setWpPhoneNumberId] = useState('');
+  const [wpToken, setWpToken] = useState('');
+  const [wpVerifyToken, setWpVerifyToken] = useState('');
+  const [wpSaving, setWpSaving] = useState(false);
+  const [wpSaved, setWpSaved] = useState(false);
+  const [wpHasToken, setWpHasToken] = useState(false);
 
   const pdfUrl = session?.id ? `/api/user/${session.id}/pdf` : null;
 
@@ -27,6 +54,13 @@ export default function Settings() {
         setIaActive(r.ia);
         if (r.hasPdf) setSavedPdfName(r.pdfName);
       });
+      getConfig(session.id).then(r => {
+        setWpPhoneNumberId(r.phoneNumberId || '');
+        setWpVerifyToken(r.verifyToken || '');
+        setWpHasToken(r.hasToken);
+      });
+      getWorkers(session.id).then(setWorkers);
+      getHours(session.id).then(setSchedule);
     }
   }, [session?.id]);
 
@@ -215,6 +249,214 @@ export default function Settings() {
 
           </section>
         </div>
+
+        {/* ── HORARIO ── */}
+        <div className={styles.whatsappPanel}>
+          <div className={styles.panelHeader}>
+            <span className={styles.panelTitle}>Horario del negocio</span>
+            {scheduleSaved && <span className={styles.pageCount}>Guardado</span>}
+          </div>
+          <p className={styles.iaDesc} style={{ margin: 0 }}>
+            El calendario solo mostrará los huecos dentro de este horario. La IA también lo tendrá en cuenta al gestionar reservas.
+          </p>
+
+          <div className={styles.scheduleTable}>
+            {DISPLAY_ORDER.map(dayNum => {
+              const row = schedule.find(s => s.day === dayNum);
+              if (!row) return null;
+              const update = (patch: Partial<DaySchedule>) =>
+                setSchedule(prev => prev.map(s => s.day === dayNum ? { ...s, ...patch } : s));
+              return (
+                <div key={dayNum} className={`${styles.scheduleRow} ${!row.enabled ? styles.scheduleRowClosed : ''}`}>
+                  <div className={styles.scheduleDayToggle}>
+                    <button
+                      className={`${styles.dayToggleBtn} ${row.enabled ? styles.dayToggleOn : styles.dayToggleOff}`}
+                      onClick={() => { update({ enabled: !row.enabled }); setScheduleSaved(false); }}
+                    >
+                      {row.enabled ? 'Abierto' : 'Cerrado'}
+                    </button>
+                    <span className={styles.scheduleDayName}>{DAY_LABELS[dayNum]}</span>
+                  </div>
+                  <div className={`${styles.scheduleHours} ${!row.enabled ? styles.scheduleHoursDisabled : ''}`}>
+                    <span className={styles.scheduleHourLabel}>Desde</span>
+                    <select
+                      className={styles.scheduleSelect}
+                      value={row.open}
+                      disabled={!row.enabled}
+                      onChange={e => { update({ open: Number(e.target.value) }); setScheduleSaved(false); }}
+                    >
+                      {HOUR_OPTIONS.map(h => (
+                        <option key={h} value={h}>{h.toString().padStart(2, '0')}:00</option>
+                      ))}
+                    </select>
+                    <span className={styles.scheduleHourLabel}>Hasta</span>
+                    <select
+                      className={styles.scheduleSelect}
+                      value={row.close}
+                      disabled={!row.enabled}
+                      onChange={e => { update({ close: Number(e.target.value) }); setScheduleSaved(false); }}
+                    >
+                      {HOUR_OPTIONS.filter(h => h > row.open).map(h => (
+                        <option key={h} value={h}>{h.toString().padStart(2, '0')}:00</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <button
+            className={`${styles.uploadBtn} ${scheduleSaved ? styles.uploadBtnSuccess : ''}`}
+            disabled={scheduleSaving || scheduleSaved}
+            onClick={async () => {
+              setScheduleSaving(true);
+              const ok = await saveHours((session as any).id, schedule);
+              setScheduleSaving(false);
+              if (ok) setScheduleSaved(true);
+            }}
+          >
+            {scheduleSaving ? 'Guardando…' : scheduleSaved ? '✓ Guardado' : 'Guardar horario'}
+          </button>
+        </div>
+
+        {/* ── EQUIPO / MECÁNICOS ── */}
+        <div className={styles.workersPanel}>
+          <div className={styles.panelHeader}>
+            <span className={styles.panelTitle}>Equipo / Mecánicos</span>
+            <span className={styles.pageCount}>{workers.length} {workers.length === 1 ? 'mecánico' : 'mecánicos'}</span>
+          </div>
+          <p className={styles.iaDesc} style={{ margin: 0 }}>
+            Cada mecánico aparece como una sub-columna en la Agenda. La IA también conoce su disponibilidad para gestionar reservas por WhatsApp.
+          </p>
+
+          <div className={styles.workersList}>
+            {workers.length === 0 && (
+              <p className={styles.emptyText} style={{ margin: 0, fontSize: '0.825rem' }}>
+                Aún no hay mecánicos configurados.
+              </p>
+            )}
+            {workers.map(w => (
+              <div key={w.id} className={styles.workerItem}>
+                <span className={styles.workerAvatar}>{w.name.charAt(0).toUpperCase()}</span>
+                <span className={styles.workerName}>{w.name}</span>
+                <button
+                  className={styles.removeWorkerBtn}
+                  onClick={async () => {
+                    await removeWorker(session.id, w.id);
+                    setWorkers(prev => prev.filter(x => x.id !== w.id));
+                  }}
+                >✕</button>
+              </div>
+            ))}
+          </div>
+
+          <div className={styles.addWorkerRow}>
+            <input
+              className={styles.formInput}
+              value={newWorkerName}
+              onChange={e => setNewWorkerName(e.target.value)}
+              placeholder="Nombre del mecánico (ej: Pedro)"
+              onKeyDown={async e => {
+                if (e.key === 'Enter' && newWorkerName.trim()) {
+                  setWorkerSaving(true);
+                  const w = await addWorker(session.id, newWorkerName.trim());
+                  if (w) setWorkers(prev => [...prev, w]);
+                  setNewWorkerName('');
+                  setWorkerSaving(false);
+                }
+              }}
+            />
+            <button
+              className={styles.uploadBtn}
+              style={{ width: 'auto', padding: '0.7rem 1.25rem' }}
+              disabled={!newWorkerName.trim() || workerSaving}
+              onClick={async () => {
+                if (!newWorkerName.trim()) return;
+                setWorkerSaving(true);
+                const w = await addWorker(session.id, newWorkerName.trim());
+                if (w) setWorkers(prev => [...prev, w]);
+                setNewWorkerName('');
+                setWorkerSaving(false);
+              }}
+            >
+              {workerSaving ? '…' : 'Añadir'}
+            </button>
+          </div>
+        </div>
+
+        {/* ── WHATSAPP CONFIG ── */}
+        <div className={styles.whatsappPanel}>
+          <div className={styles.panelHeader}>
+            <span className={styles.panelTitle}>Conexión WhatsApp</span>
+            {wpHasToken && <span className={styles.pageCount}>Conectado</span>}
+          </div>
+
+          <div className={styles.whatsappGuide}>
+            <p className={styles.guideTitle}>¿Cómo obtener tus credenciales?</p>
+            <ol className={styles.guideSteps}>
+              <li>Ve a <strong>developers.facebook.com</strong> e inicia sesión con tu cuenta de Meta/Facebook</li>
+              <li>Crea una nueva app → tipo <strong>Business</strong></li>
+              <li>Añade el producto <strong>WhatsApp</strong> a tu app</li>
+              <li>En <em>WhatsApp → Configuración de la API</em> encontrarás el <strong>Phone Number ID</strong> y podrás generar el <strong>Access Token</strong></li>
+              <li>Inventa un <strong>Verify Token</strong> (cualquier texto, ej: <code>mi-token-secreto-123</code>)</li>
+              <li>Configura el webhook en Meta con la URL: <code>{`https://atomic-assistance.es/api/webhook/${session?.id}`}</code></li>
+              <li>Pega aquí tus credenciales y guarda</li>
+            </ol>
+          </div>
+
+          <div className={styles.whatsappForm}>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Phone Number ID</label>
+              <input
+                className={styles.formInput}
+                type="text"
+                placeholder="123456789012345"
+                value={wpPhoneNumberId}
+                onChange={e => { setWpPhoneNumberId(e.target.value); setWpSaved(false); }}
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Access Token</label>
+              <input
+                className={styles.formInput}
+                type="password"
+                placeholder={wpHasToken ? '••••••••••••••••' : 'EAAxxxxx...'}
+                value={wpToken}
+                onChange={e => { setWpToken(e.target.value); setWpSaved(false); }}
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Verify Token</label>
+              <input
+                className={styles.formInput}
+                type="text"
+                placeholder="mi-token-secreto-123"
+                value={wpVerifyToken}
+                onChange={e => { setWpVerifyToken(e.target.value); setWpSaved(false); }}
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>URL del Webhook (cópiala en Meta)</label>
+              <div className={styles.webhookUrl}>
+                <code>{`https://atomic-assistance.es/api/webhook/${session?.id}`}</code>
+              </div>
+            </div>
+            <button
+              className={`${styles.uploadBtn} ${wpSaved ? styles.uploadBtnSuccess : ''}`}
+              disabled={wpSaving || wpSaved}
+              onClick={async () => {
+                setWpSaving(true);
+                const ok = await saveConfig(session.id, wpPhoneNumberId, wpToken, wpVerifyToken);
+                setWpSaving(false);
+                if (ok) { setWpSaved(true); setWpHasToken(true); setWpToken(''); }
+              }}
+            >
+              {wpSaving ? 'Guardando…' : wpSaved ? '✓ Guardado' : 'Guardar credenciales'}
+            </button>
+          </div>
+        </div>
+
       </section>
     </>
   );

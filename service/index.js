@@ -21,10 +21,18 @@ app.use(express.json());
 app.set('io', io);
 
 // Rutas API
+const { sendReminders } = require('./services/reminder');
+
 const userRoutes = require('./routes/user.routes');
 const recordRoutes = require('./routes/record.routes');
+const whatsappRoutes = require('./routes/whatsapp.routes');
+const appointmentRoutes = require('./routes/appointment.routes');
+const workerRoutes = require('./routes/worker.routes');
 app.use('/api', userRoutes);
 app.use('/api', recordRoutes);
+app.use('/api', whatsappRoutes);
+app.use('/api', appointmentRoutes);
+app.use('/api', workerRoutes);
 
 // Servir frontend estático (build de React)
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -60,4 +68,6 @@ connectDB().then(() => {
   server.listen(PORT, () => {
     console.log(`Servidor escuchando en http://localhost:${PORT}`);
   });
+  sendReminders();
+  setInterval(sendReminders, 60 * 60 * 1000); // cada hora
 });

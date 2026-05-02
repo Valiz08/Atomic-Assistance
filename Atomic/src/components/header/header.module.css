@@ -1,3 +1,30 @@
+/* ─── NAV ─── */
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.navLink {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 5px 11px;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s, background 0.15s;
+}
+
+.navLink:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.navLinkActive {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
 .header {
   color: var(--text-primary);
   padding: 0 1.5rem;
@@ -23,6 +50,11 @@
 /* Mobile */
 @media (max-width: 768px) {
   .header { padding: 0 1rem; height: 50px; }
+  .navLink { font-size: 0.75rem; padding: 4px 8px; }
+}
+
+@media (max-width: 600px) {
+  .nav { display: none; }
 }
 
 /* Small Mobile */
