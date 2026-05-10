@@ -26,7 +26,13 @@ exports.login = async (req, res, next) => {
     if (!user) return res.status(401).json({ message: "Usuario no encontrado" });
     const coincide = await bcrypt.compare(password, user.pass);
     if (coincide) {
-      res.status(200).json({ message: "Login successful", userId: user.id });
+      res.status(200).json({
+        message: "Login successful",
+        userId: user.id,
+        role: user.role || 'user',
+        businessType: user.businessType || 'taller',
+        businessName: user.businessName || '',
+      });
     } else {
       res.status(401).json({ message: "Credenciales incorrectas" });
     }
@@ -40,15 +46,9 @@ exports.getUser = async (req, res, next) => {
   try {
     const user = await User.findOne({ id: userId });
     if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
-    const filePath = path.join(UPLOADS_DIR, `${userId}.pdf`);
-    const fileExists = fs.existsSync(filePath);
-    if (fileExists && !user.hasPdf) {
-      await User.findOneAndUpdate({ id: userId }, { hasPdf: true });
-    }
     res.status(200).json({
       ia: user.ia !== false,
-      hasPdf: fileExists || user.hasPdf || false,
-      pdfName: user.pdfName || (fileExists ? `${userId}.pdf` : null)
+      pdfs: (user.pdfs || []).map(p => ({ id: p.id, name: p.name, uploadedAt: p.uploadedAt })),
     });
   } catch (error) {
     next(error);
@@ -56,11 +56,24 @@ exports.getUser = async (req, res, next) => {
 };
 
 exports.getPdf = (req, res, next) => {
-  const { userId } = req.params;
-  const filePath = path.join(UPLOADS_DIR, `${userId}.pdf`);
-  if (!fs.existsSync(filePath)) return res.status(404).json({ message: 'No hay PDF subido' });
+  const { userId, pdfId } = req.params;
+  const filePath = path.join(UPLOADS_DIR, `${userId}_${pdfId}.pdf`);
+  if (!fs.existsSync(filePath)) return res.status(404).json({ message: 'PDF no encontrado' });
   res.setHeader('Content-Type', 'application/pdf');
   res.sendFile(filePath);
+};
+
+exports.deletePdf = async (req, res, next) => {
+  const { userId, pdfId } = req.params;
+  try {
+    const filePath = path.join(UPLOADS_DIR, `${userId}_${pdfId}.pdf`);
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    await User.findOneAndUpdate({ id: userId }, { $pull: { pdfs: { id: pdfId } } });
+    await Chunk.deleteMany({ userId, pdfId });
+    res.status(200).json({ message: "PDF eliminado" });
+  } catch (error) {
+    next(error);
+  }
 };
 
 exports.toggleIA = async (req, res, next) => {
@@ -141,22 +154,28 @@ exports.uploadFile = async (req, res) => {
     return res.status(400).json({ message: "Faltan datos (archivo o userId)" });
   }
 
+  const pdfId = uuidv4();
+  const fileName = `${userId}_${pdfId}.pdf`;
+
   try {
-    await subirArchivoSFTP(archivo.buffer, userId);
+    await subirArchivoSFTP(archivo.buffer, `${userId}_${pdfId}`);
   } catch (ftpErr) {
     console.error('SFTP upload failed (non-critical):', ftpErr.message);
   }
 
   try {
-    fs.writeFileSync(path.join(UPLOADS_DIR, `${userId}.pdf`), archivo.buffer);
-    await User.findOneAndUpdate({ id: userId }, { hasPdf: true, pdfName: archivo.originalname });
+    fs.writeFileSync(path.join(UPLOADS_DIR, fileName), archivo.buffer);
+    await User.findOneAndUpdate(
+      { id: userId },
+      { $push: { pdfs: { id: pdfId, name: archivo.originalname, uploadedAt: new Date() } } }
+    );
   } catch (error) {
     return res.status(500).json({ message: "Error al guardar el PDF", error: error.message });
   }
 
-  res.status(200).json({ message: "PDF subido correctamente." });
+  res.status(200).json({ message: "PDF subido correctamente.", pdfId, name: archivo.originalname });
 
-  processChunk(archivo.buffer, userId).catch(err =>
+  processChunk(archivo.buffer, pdfId, userId).catch(err =>
     console.error('Error procesando chunks (non-critical):', err.message)
   );
 };
@@ -186,9 +205,7 @@ function transformData(messages) {
   }));
 }
 
-async function processChunk(buffer, userId) {
-  const filePath = `/var/www/vhosts/atomic-assistance.es/uploads/${userId}`;
-  const pdfId = uuidv4();
+async function processChunk(buffer, pdfId, userId) {
   const data = await pdf(buffer);
   const text = data.text;
   const chunkSize = 1000;
@@ -204,10 +221,10 @@ async function processChunk(buffer, userId) {
       input: chunk
     });
     const embedding = response.data[0].embedding;
-    await new Chunk({ pdfId, chunkId: chunkId++, text: chunk, embedding, path: filePath }).save();
+    await new Chunk({ userId, pdfId, chunkId: chunkId++, text: chunk, embedding }).save();
   }
 
-  console.log(`PDF procesado y ${chunks.length} chunks guardados en Mongo.`);
+  console.log(`PDF ${pdfId} procesado: ${chunks.length} chunks guardados.`);
 }
 
 async function getOpenAIResponse(messages) {

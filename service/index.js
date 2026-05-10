@@ -28,11 +28,13 @@ const recordRoutes = require('./routes/record.routes');
 const whatsappRoutes = require('./routes/whatsapp.routes');
 const appointmentRoutes = require('./routes/appointment.routes');
 const workerRoutes = require('./routes/worker.routes');
+const adminRoutes = require('./routes/admin.routes');
 app.use('/api', userRoutes);
 app.use('/api', recordRoutes);
 app.use('/api', whatsappRoutes);
 app.use('/api', appointmentRoutes);
 app.use('/api', workerRoutes);
+app.use('/api', adminRoutes);
 
 // Servir frontend estático (build de React)
 const PUBLIC_DIR = path.join(__dirname, 'public');

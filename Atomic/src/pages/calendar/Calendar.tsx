@@ -12,10 +12,15 @@ import type { RootState } from "../../store/store";
 const FALLBACK_HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 const DAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 const MONTH_NAMES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-const SERVICES = [
+const SERVICES_TALLER = [
   'Revisión general', 'Cambio de aceite', 'Cambio de frenos',
   'Cambio de neumáticos', 'Diagnóstico eléctrico', 'Reparación motor',
   'ITV (preparación)', 'Aire acondicionado', 'Otro',
+];
+const SERVICES_CLINICA = [
+  'Sesión fisioterapia', 'Consulta psicología', 'Consulta nutrición',
+  'Masaje terapéutico', 'Osteopatía', 'Rehabilitación',
+  'Primera visita', 'Revisión', 'Otro',
 ];
 const DURATIONS = [
   { label: '30 min', value: 30 }, { label: '1 hora', value: 60 },
@@ -70,6 +75,11 @@ const WORKER_COLORS = [
 
 export default function CalendarPage() {
   const session = useSelector((state: RootState) => state.user.session) as any;
+  const isClinica = session?.businessType === 'clinica';
+  const SERVICES = isClinica ? SERVICES_CLINICA : SERVICES_TALLER;
+  const workerLabel = isClinica ? 'especialista' : 'mecánico';
+  const workersLabel = isClinica ? 'especialistas' : 'mecánicos';
+
   const { getAppointments, createAppointment, updateAppointment, deleteAppointment } = useAppointments();
   const { getWorkers } = useWorkers();
   const { getHours } = useBusinessHours();
@@ -83,6 +93,7 @@ export default function CalendarPage() {
   const [form, setForm] = useState({
     clientName: '', clientPhone: '', service: SERVICES[0],
     duration: 60, notes: '', workerId: '', workerName: '',
+    formDate: '', formTime: '',
   });
   const [saving, setSaving] = useState(false);
 
@@ -120,6 +131,20 @@ export default function CalendarPage() {
       return a.workerId === worker.id || (!a.workerId && workers.length === 0);
     });
 
+  const openCreateModal = (date: Date, worker: Worker | null) => {
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    const formDate = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    const formTime = `${pad(date.getHours())}:00`;
+    setCreating({ date, worker });
+    setForm({
+      clientName: '', clientPhone: '', service: SERVICES[0], duration: 60, notes: '',
+      workerId: worker?.id || '',
+      workerName: worker?.name || '',
+      formDate,
+      formTime,
+    });
+  };
+
   const handleCellClick = (day: Date, hour: number, worker: Worker | null) => {
     const existing = getApptAt(day, hour, worker);
     if (existing) {
@@ -127,24 +152,28 @@ export default function CalendarPage() {
     } else {
       const date = new Date(day);
       date.setHours(hour, 0, 0, 0);
-      setCreating({ date, worker });
-      setForm({
-        clientName: '', clientPhone: '', service: SERVICES[0], duration: 60, notes: '',
-        workerId: worker?.id || '',
-        workerName: worker?.name || '',
-      });
+      openCreateModal(date, worker);
     }
   };
 
+  const handleNewApptBtn = () => {
+    const now = new Date();
+    now.setMinutes(0, 0, 0);
+    openCreateModal(now, workers[0] ?? null);
+  };
+
   const handleCreate = async () => {
-    if (!form.clientName || !session?.id) return;
+    if (!form.clientName || !session?.id || !form.formDate || !form.formTime) return;
     setSaving(true);
+    const [h, m] = form.formTime.split(':').map(Number);
+    const apptDate = new Date(form.formDate);
+    apptDate.setHours(h, m, 0, 0);
     await createAppointment({
       userId: session.id,
       clientName: form.clientName,
       clientPhone: form.clientPhone,
       service: form.service,
-      date: creating!.date.toISOString(),
+      date: apptDate.toISOString(),
       duration: form.duration,
       notes: form.notes,
       workerId: form.workerId || undefined,
@@ -215,15 +244,18 @@ export default function CalendarPage() {
             <h2 className={styles.pageTitle}>Agenda</h2>
             <p className={styles.pageSubtitle}>
               {workers.length > 0
-                ? `${workers.length} mecánico${workers.length > 1 ? 's' : ''}: ${workers.map(w => w.name).join(', ')}`
-                : 'Configura mecánicos en Ajustes para ver sub-columnas'}
+                ? `${workers.length} ${workers.length > 1 ? workersLabel : workerLabel}: ${workers.map(w => w.name).join(', ')}`
+                : `Configura ${workersLabel} en Ajustes para ver sub-columnas`}
             </p>
           </div>
-          <div className={styles.weekNav}>
-            <button className={styles.navBtn} onClick={() => { const d = new Date(weekStart); d.setDate(d.getDate() - 7); setWeekStart(d); }}>‹</button>
-            <span className={styles.weekLabel}>{weekLabel}</span>
-            <button className={styles.navBtn} onClick={() => { const d = new Date(weekStart); d.setDate(d.getDate() + 7); setWeekStart(d); }}>›</button>
-            <button className={styles.todayBtn} onClick={() => setWeekStart(getWeekStart(new Date()))}>Hoy</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <div className={styles.weekNav}>
+              <button className={styles.navBtn} onClick={() => { const d = new Date(weekStart); d.setDate(d.getDate() - 7); setWeekStart(d); }}>‹</button>
+              <span className={styles.weekLabel}>{weekLabel}</span>
+              <button className={styles.navBtn} onClick={() => { const d = new Date(weekStart); d.setDate(d.getDate() + 7); setWeekStart(d); }}>›</button>
+              <button className={styles.todayBtn} onClick={() => setWeekStart(getWeekStart(new Date()))}>Hoy</button>
+            </div>
+            <button className={styles.btnPrimary} onClick={handleNewApptBtn}>+ Nueva cita</button>
           </div>
         </div>
 
@@ -334,10 +366,25 @@ export default function CalendarPage() {
             <div className={styles.modal} onClick={e => e.stopPropagation()}>
               <div className={styles.modalHeader}>
                 <span className={styles.modalTitle}>Nueva cita</span>
-                <span className={styles.modalMeta}>
-                  {`${DAY_NAMES[creating.date.getDay() === 0 ? 6 : creating.date.getDay() - 1]} ${creating.date.getDate()} ${MONTH_NAMES[creating.date.getMonth()]} · ${creating.date.getHours().toString().padStart(2, '0')}:00`}
-                  {creating.worker && ` · ${creating.worker.name}`}
-                </span>
+              </div>
+
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Fecha *</label>
+                  <input type="date" className={styles.formInput} value={form.formDate}
+                    onChange={e => setForm(f => ({ ...f, formDate: e.target.value }))} />
+                </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Hora *</label>
+                  <select className={styles.formInput} value={form.formTime}
+                    onChange={e => setForm(f => ({ ...f, formTime: e.target.value }))}>
+                    {Array.from({ length: 17 }, (_, i) => i + 6).map(h => (
+                      <option key={h} value={`${h.toString().padStart(2, '0')}:00`}>
+                        {`${h.toString().padStart(2, '0')}:00`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div className={styles.formGroup}>
@@ -395,7 +442,7 @@ export default function CalendarPage() {
               <div className={styles.modalActions}>
                 <button className={styles.btnSecondary} onClick={() => setCreating(null)}>Cancelar</button>
                 <button className={styles.btnPrimary} onClick={handleCreate}
-                  disabled={!form.clientName || saving}>
+                  disabled={!form.clientName || !form.formDate || !form.formTime || saving}>
                   {saving ? 'Guardando…' : 'Crear cita'}
                 </button>
               </div>

@@ -189,8 +189,11 @@ async function generateReply(clientId, contactId, text, contactName, user) {
 
   const workers = user?.workers || [];
 
-  // System prompt base
-  let systemPrompt = 'Eres el asistente virtual de un taller mecánico. Respondes mensajes de WhatsApp de forma amable, breve y clara.';
+  const businessType = user.businessType || 'taller';
+  const businessDesc = businessType === 'clinica'
+    ? 'una clínica multifunción (fisioterapia, psicología, nutrición, etc.)'
+    : 'un taller mecánico';
+  let systemPrompt = `Eres el asistente virtual de ${businessDesc}. Respondes mensajes de WhatsApp de forma amable, breve y clara.`;
 
   // Huecos disponibles
   try {
@@ -198,7 +201,11 @@ async function generateReply(clientId, contactId, text, contactName, user) {
     const slotsText = formatSlotsForAI(slots);
 
     if (workers.length > 0) {
-      systemPrompt += `\n\nMecánicos del taller: ${workers.map(w => w.name).join(', ')}.`;
+      const workerDesc = workers.map(w =>
+        `- ${w.name}${w.specialty ? ` — especialidad: ${w.specialty}` : ''}`
+      ).join('\n');
+      systemPrompt += `\n\nMecánicos del taller:\n${workerDesc}`;
+      systemPrompt += `\n\nCuando el cliente pregunte por un servicio concreto, asigna automáticamente al mecánico cuya especialidad coincida. Si ninguno tiene una especialidad concreta para ese servicio, ofrece cualquiera que tenga hueco.`;
     }
 
     systemPrompt += `\n\nHuecos disponibles (próximos 7 días):\n${slotsText || 'Sin huecos disponibles esta semana.'}`;

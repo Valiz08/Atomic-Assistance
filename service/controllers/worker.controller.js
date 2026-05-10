@@ -24,12 +24,26 @@ exports.getWorkers = async (req, res, next) => {
 
 exports.addWorker = async (req, res, next) => {
   const { userId } = req.params;
-  const { name } = req.body;
+  const { name, specialty } = req.body;
   if (!name?.trim()) return res.status(400).json({ message: 'Nombre requerido' });
   try {
-    const worker = { id: uuidv4(), name: name.trim() };
+    const worker = { id: uuidv4(), name: name.trim(), specialty: specialty?.trim() || '' };
     await User.findOneAndUpdate({ id: userId }, { $push: { workers: worker } });
     res.status(201).json(worker);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.updateWorker = async (req, res, next) => {
+  const { userId, workerId } = req.params;
+  const { specialty } = req.body;
+  try {
+    await User.findOneAndUpdate(
+      { id: userId, 'workers.id': workerId },
+      { $set: { 'workers.$.specialty': specialty?.trim() || '' } }
+    );
+    res.status(200).json({ message: 'Actualizado' });
   } catch (error) {
     next(error);
   }
@@ -38,8 +52,12 @@ exports.addWorker = async (req, res, next) => {
 exports.removeWorker = async (req, res, next) => {
   const { userId, workerId } = req.params;
   try {
-    await User.findOneAndUpdate({ id: userId }, { $pull: { workers: { id: workerId } } });
-    res.status(200).json({ message: 'Trabajador eliminado' });
+    const Appointment = require('../models/appointment');
+    await Promise.all([
+      User.findOneAndUpdate({ id: userId }, { $pull: { workers: { id: workerId } } }),
+      Appointment.deleteMany({ userId, workerId }),
+    ]);
+    res.status(200).json({ message: 'Trabajador y sus citas eliminados' });
   } catch (error) {
     next(error);
   }

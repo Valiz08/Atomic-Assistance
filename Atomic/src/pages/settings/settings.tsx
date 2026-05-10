@@ -1,43 +1,63 @@
 import { useSelector } from "react-redux";
 import Header from "../../components/header/header";
 import { useUser } from "../../hooks/useUser";
+import type { PdfEntry } from "../../hooks/useUser";
 import { useWhatsapp } from "../../hooks/useWhatsapp";
 import { useWorkers } from "../../hooks/useWorkers";
 import type { Worker } from "../../hooks/useWorkers";
 import { useBusinessHours } from "../../hooks/useBusinessHours";
 import type { DaySchedule } from "../../hooks/useBusinessHours";
 import styles from "./settings.module.css";
-import React, { useState, useEffect, useRef } from 'react';
-import { Document, Page } from 'react-pdf';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Document, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/Page/TextLayer.css';
 import type { RootState } from "../../store/store";
 
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.mjs',
+  import.meta.url,
+).toString();
+
 export default function Settings() {
-  const [file, setFile] = useState<File | null>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [numPages, setNumPages] = useState<number | null>(null);
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [uploaded, setUploaded] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [iaActive, setIaActive] = useState(true);
-  const [savedPdfName, setSavedPdfName] = useState<string | null>(null);
+  const [savedPdfs, setSavedPdfs] = useState<PdfEntry[]>([]);
+  const [selectedPdfId, setSelectedPdfId] = useState<string | null>(null);
+  const [deletingPdfId, setDeletingPdfId] = useState<string | null>(null);
+  const [pdfContainerWidth, setPdfContainerWidth] = useState(0);
+  const pdfViewerRef = useRef<HTMLDivElement>(null);
+
   const session = useSelector((state: RootState) => state.user.session);
-  const { uploadFile, toggleIA, getIAState } = useUser();
+  const { uploadFile, deletePdf, toggleIA, getIAState } = useUser();
   const { getConfig, saveConfig } = useWhatsapp();
-  const { getWorkers, addWorker, removeWorker } = useWorkers();
+  const { getWorkers, addWorker, updateWorker, removeWorker } = useWorkers();
   const { getHours, saveHours } = useBusinessHours();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [newWorkerName, setNewWorkerName] = useState('');
+  const [newWorkerSpecialty, setNewWorkerSpecialty] = useState('');
   const [workerSaving, setWorkerSaving] = useState(false);
+  const [editingSpecialty, setEditingSpecialty] = useState<Record<string, string>>({});
+  const [confirmDeleteWorker, setConfirmDeleteWorker] = useState<Worker | null>(null);
 
   const [schedule, setSchedule] = useState<DaySchedule[]>([]);
   const [scheduleSaving, setScheduleSaving] = useState(false);
   const [scheduleSaved, setScheduleSaved] = useState(false);
 
+  const businessType = (session as any)?.businessType || 'taller';
+  const isClinica = businessType === 'clinica';
+  const workerLabel = isClinica ? 'Especialista' : 'Mecánico';
+  const workersLabel = isClinica ? 'Especialistas' : 'Mecánicos';
+
   const DAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-  const HOUR_OPTIONS = Array.from({ length: 18 }, (_, i) => i + 6); // 6..23
-  const DISPLAY_ORDER = [1, 2, 3, 4, 5, 6, 0]; // Lun-Dom
+  const HOUR_OPTIONS = Array.from({ length: 18 }, (_, i) => i + 6);
+  const DISPLAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
 
   const [wpPhoneNumberId, setWpPhoneNumberId] = useState('');
   const [wpToken, setWpToken] = useState('');
@@ -46,13 +66,22 @@ export default function Settings() {
   const [wpSaved, setWpSaved] = useState(false);
   const [wpHasToken, setWpHasToken] = useState(false);
 
-  const pdfUrl = session?.id ? `/api/user/${session.id}/pdf` : null;
+  useEffect(() => {
+    if (!pdfViewerRef.current) return;
+    const ro = new ResizeObserver(entries => {
+      const width = entries[0]?.contentRect.width;
+      if (width) setPdfContainerWidth(Math.floor(width) - 32);
+    });
+    ro.observe(pdfViewerRef.current);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
     if (session?.id) {
       getIAState(session.id).then(r => {
         setIaActive(r.ia);
-        if (r.hasPdf) setSavedPdfName(r.pdfName);
+        setSavedPdfs(r.pdfs || []);
+        if (r.pdfs?.length > 0) setSelectedPdfId(r.pdfs[r.pdfs.length - 1].id);
       });
       getConfig(session.id).then(r => {
         setWpPhoneNumberId(r.phoneNumberId || '');
@@ -66,15 +95,17 @@ export default function Settings() {
 
   const handleFile = (f: File) => {
     if (f.type === 'application/pdf') {
-      setFile(f);
-      setUploaded(false);
+      setPendingFile(f);
       setNumPages(null);
+      setUploadError(null);
+      setSelectedPdfId(null);
     }
   };
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (f) handleFile(f);
+    e.target.value = '';
   };
 
   const onDrop = (e: React.DragEvent) => {
@@ -85,19 +116,33 @@ export default function Settings() {
   };
 
   const handleUpload = async () => {
-    if (!file) return;
+    if (!pendingFile) return;
     setUploading(true);
     setUploadError(null);
-    const result = await uploadFile(session.id, file);
+    const result = await uploadFile(session.id, pendingFile);
     setUploading(false);
-    if (result?.ok) {
-      setUploaded(true);
-      setSavedPdfName(file.name);
-      setFile(null);
+    if (result?.ok && result.pdfId && result.name) {
+      const newEntry: PdfEntry = { id: result.pdfId, name: result.name };
+      setSavedPdfs(prev => [...prev, newEntry]);
+      setSelectedPdfId(result.pdfId);
+      setPendingFile(null);
       setNumPages(null);
     } else {
       setUploadError(result?.message || 'Error desconocido al subir el PDF');
     }
+  };
+
+  const handleDeletePdf = async (pdfId: string) => {
+    setDeletingPdfId(pdfId);
+    const ok = await deletePdf(session.id, pdfId);
+    if (ok) {
+      setSavedPdfs(prev => prev.filter(p => p.id !== pdfId));
+      if (selectedPdfId === pdfId) {
+        const remaining = savedPdfs.filter(p => p.id !== pdfId);
+        setSelectedPdfId(remaining.length > 0 ? remaining[remaining.length - 1].id : null);
+      }
+    }
+    setDeletingPdfId(null);
   };
 
   const handleToggleIA = async () => {
@@ -110,13 +155,17 @@ export default function Settings() {
       ? `${(bytes / 1024).toFixed(1)} KB`
       : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 
+  const previewUrl = selectedPdfId
+    ? `/api/user/${session?.id}/pdf/${selectedPdfId}`
+    : null;
+
   return (
     <>
       <Header />
       <section className={styles.dashboard}>
         <div className={styles.pageHeader}>
           <h2 className={styles.pageTitle}>Configuración</h2>
-          <p className={styles.pageSubtitle}>Gestiona el documento base de tu asistente y el estado de la IA</p>
+          <p className={styles.pageSubtitle}>Gestiona los documentos de tu asistente y el estado de la IA</p>
         </div>
 
         <div className={styles.grid}>
@@ -128,14 +177,26 @@ export default function Settings() {
               {numPages && <span className={styles.pageCount}>{numPages} {numPages === 1 ? 'página' : 'páginas'}</span>}
             </div>
 
-            {(file || savedPdfName) ? (
-              <div className={styles.views}>
+            {(pendingFile || previewUrl) ? (
+              <div className={styles.views} ref={pdfViewerRef}>
                 <Document
-                  file={file ?? pdfUrl}
+                  file={pendingFile ?? previewUrl}
                   onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+                  loading={<div className={styles.pdfLoading}><span className={styles.pdfLoadingDot} />Cargando PDF…</div>}
+                  error={<div className={styles.pdfError}>No se pudo cargar el PDF</div>}
                 >
                   {Array.from(new Array(numPages), (_, i) => (
-                    <Page key={`page_${i + 1}`} pageNumber={i + 1} width={460} />
+                    <div key={`wrap_${i + 1}`} className={styles.pdfPageWrap}>
+                      <Page
+                        pageNumber={i + 1}
+                        width={pdfContainerWidth || undefined}
+                        renderTextLayer
+                        renderAnnotationLayer
+                      />
+                      {numPages && numPages > 1 && (
+                        <span className={styles.pdfPageNum}>{i + 1} / {numPages}</span>
+                      )}
+                    </div>
                   ))}
                 </Document>
               </div>
@@ -146,7 +207,6 @@ export default function Settings() {
                   <polyline points="14 2 14 8 20 8" />
                   <line x1="16" y1="13" x2="8" y2="13" />
                   <line x1="16" y1="17" x2="8" y2="17" />
-                  <polyline points="10 9 9 9 8 9" />
                 </svg>
                 <p className={styles.emptyText}>Selecciona un PDF para previsualizarlo</p>
               </div>
@@ -156,43 +216,54 @@ export default function Settings() {
           {/* ── CONTROLS ── */}
           <section className={styles.controlPanel}>
 
-            {/* Upload */}
             <div className={styles.panelHeader}>
-              <span className={styles.panelTitle}>Documento de entrenamiento</span>
+              <span className={styles.panelTitle}>Documentos de entrenamiento</span>
+              {savedPdfs.length > 0 && (
+                <span className={styles.pageCount}>{savedPdfs.length} PDF{savedPdfs.length > 1 ? 's' : ''}</span>
+              )}
             </div>
 
-            {/* PDF guardado en servidor */}
-            {savedPdfName && !file && (
-              <div className={styles.savedFileCard}>
-                <div className={styles.fileIconBadge}>PDF</div>
-                <div className={styles.fileMeta}>
-                  <span className={styles.fileName}>{savedPdfName}</span>
-                  <span className={styles.fileSize}>Subido anteriormente</span>
-                </div>
-                <button
-                  className={styles.replaceBtn}
-                  onClick={() => inputRef.current?.click()}
-                >Reemplazar</button>
+            {/* Lista de PDFs guardados */}
+            {savedPdfs.length > 0 && (
+              <div className={styles.pdfList}>
+                {savedPdfs.map(pdf => (
+                  <div
+                    key={pdf.id}
+                    className={`${styles.pdfItem} ${selectedPdfId === pdf.id && !pendingFile ? styles.pdfItemActive : ''}`}
+                    onClick={() => { setSelectedPdfId(pdf.id); setPendingFile(null); setNumPages(null); }}
+                  >
+                    <div className={styles.fileIconBadge}>PDF</div>
+                    <span className={styles.pdfItemName}>{pdf.name}</span>
+                    <button
+                      className={styles.removeFile}
+                      disabled={deletingPdfId === pdf.id}
+                      onClick={e => { e.stopPropagation(); handleDeletePdf(pdf.id); }}
+                    >
+                      {deletingPdfId === pdf.id ? '…' : '✕'}
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
 
+            {/* Drop zone para añadir otro PDF */}
             <div
-              className={`${styles.dropZone} ${dragging ? styles.dropZoneActive : ''} ${file ? styles.dropZoneHasFile : ''}`}
+              className={`${styles.dropZone} ${dragging ? styles.dropZoneActive : ''} ${pendingFile ? styles.dropZoneHasFile : ''}`}
               onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
               onDragLeave={() => setDragging(false)}
               onDrop={onDrop}
-              onClick={() => !file && !savedPdfName && inputRef.current?.click()}
+              onClick={() => !pendingFile && inputRef.current?.click()}
             >
-              {file ? (
+              {pendingFile ? (
                 <div className={styles.fileCard}>
                   <div className={styles.fileIconBadge}>PDF</div>
                   <div className={styles.fileMeta}>
-                    <span className={styles.fileName}>{file.name}</span>
-                    <span className={styles.fileSize}>{formatSize(file.size)}</span>
+                    <span className={styles.fileName}>{pendingFile.name}</span>
+                    <span className={styles.fileSize}>{formatSize(pendingFile.size)}</span>
                   </div>
                   <button
                     className={styles.removeFile}
-                    onClick={(e) => { e.stopPropagation(); setFile(null); setNumPages(null); setUploaded(false); }}
+                    onClick={(e) => { e.stopPropagation(); setPendingFile(null); setNumPages(null); }}
                   >✕</button>
                 </div>
               ) : (
@@ -204,8 +275,8 @@ export default function Settings() {
                       <line x1="12" y1="3" x2="12" y2="15" />
                     </svg>
                   </div>
-                  <p className={styles.dropText}>{savedPdfName ? 'Arrastra el nuevo PDF aquí' : 'Arrastra tu PDF aquí'}</p>
-                  <p className={styles.dropHint}>o haz clic para seleccionar</p>
+                  <p className={styles.dropText}>Añadir PDF</p>
+                  <p className={styles.dropHint}>Arrastra aquí o haz clic para seleccionar</p>
                 </>
               )}
             </div>
@@ -219,11 +290,11 @@ export default function Settings() {
             />
 
             <button
-              className={`${styles.uploadBtn} ${uploaded ? styles.uploadBtnSuccess : ''} ${uploadError ? styles.uploadBtnError : ''}`}
+              className={`${styles.uploadBtn} ${uploadError ? styles.uploadBtnError : ''}`}
               onClick={handleUpload}
-              disabled={!file || uploading || uploaded}
+              disabled={!pendingFile || uploading}
             >
-              {uploading ? 'Procesando…' : uploaded ? '✓ Subido correctamente' : 'Subir PDF'}
+              {uploading ? 'Procesando…' : 'Subir PDF'}
             </button>
             {uploadError && <p className={styles.uploadErrorMsg}>{uploadError}</p>}
 
@@ -320,67 +391,94 @@ export default function Settings() {
           </button>
         </div>
 
-        {/* ── EQUIPO / MECÁNICOS ── */}
+        {/* ── EQUIPO ── */}
         <div className={styles.workersPanel}>
           <div className={styles.panelHeader}>
-            <span className={styles.panelTitle}>Equipo / Mecánicos</span>
-            <span className={styles.pageCount}>{workers.length} {workers.length === 1 ? 'mecánico' : 'mecánicos'}</span>
+            <span className={styles.panelTitle}>Equipo / {workersLabel}</span>
+            <span className={styles.pageCount}>{workers.length} {workers.length === 1 ? workerLabel.toLowerCase() : workersLabel.toLowerCase()}</span>
           </div>
           <p className={styles.iaDesc} style={{ margin: 0 }}>
-            Cada mecánico aparece como una sub-columna en la Agenda. La IA también conoce su disponibilidad para gestionar reservas por WhatsApp.
+            Cada {workerLabel.toLowerCase()} aparece como una sub-columna en la Agenda. La IA también conoce su disponibilidad para gestionar reservas por WhatsApp.
           </p>
 
           <div className={styles.workersList}>
             {workers.length === 0 && (
               <p className={styles.emptyText} style={{ margin: 0, fontSize: '0.825rem' }}>
-                Aún no hay mecánicos configurados.
+                Aún no hay {workersLabel.toLowerCase()} configurados.
               </p>
             )}
-            {workers.map(w => (
-              <div key={w.id} className={styles.workerItem}>
-                <span className={styles.workerAvatar}>{w.name.charAt(0).toUpperCase()}</span>
-                <span className={styles.workerName}>{w.name}</span>
-                <button
-                  className={styles.removeWorkerBtn}
-                  onClick={async () => {
-                    await removeWorker(session.id, w.id);
-                    setWorkers(prev => prev.filter(x => x.id !== w.id));
-                  }}
-                >✕</button>
-              </div>
-            ))}
+            {workers.map(w => {
+              const editVal = editingSpecialty[w.id] ?? w.specialty ?? '';
+              const isDirty = editVal !== (w.specialty ?? '');
+              return (
+                <div key={w.id} className={styles.workerItem} style={{ alignItems: 'flex-start', flexDirection: 'column', gap: '0.4rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '0.5rem' }}>
+                    <span className={styles.workerAvatar}>{w.name.charAt(0).toUpperCase()}</span>
+                    <span className={styles.workerName} style={{ flex: 1 }}>{w.name}</span>
+                    <button className={styles.removeWorkerBtn} onClick={() => setConfirmDeleteWorker(w)}>✕</button>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingLeft: '2.25rem', width: '100%' }}>
+                    <input
+                      className={styles.formInput}
+                      style={{ fontSize: '0.78rem', padding: '0.3rem 0.6rem', flex: 1 }}
+                      placeholder="Especialización (ej: Chapista, Electricista…)"
+                      value={editVal}
+                      onChange={e => setEditingSpecialty(prev => ({ ...prev, [w.id]: e.target.value }))}
+                      onKeyDown={async e => {
+                        if (e.key === 'Enter' && isDirty) {
+                          await updateWorker(session.id, w.id, editVal);
+                          setWorkers(prev => prev.map(x => x.id === w.id ? { ...x, specialty: editVal } : x));
+                        }
+                      }}
+                    />
+                    {isDirty && (
+                      <button
+                        className={styles.uploadBtn}
+                        style={{ width: 'auto', padding: '0.3rem 0.75rem', fontSize: '0.78rem' }}
+                        onClick={async () => {
+                          await updateWorker(session.id, w.id, editVal);
+                          setWorkers(prev => prev.map(x => x.id === w.id ? { ...x, specialty: editVal } : x));
+                        }}
+                      >Guardar</button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
-          <div className={styles.addWorkerRow}>
-            <input
-              className={styles.formInput}
-              value={newWorkerName}
-              onChange={e => setNewWorkerName(e.target.value)}
-              placeholder="Nombre del mecánico (ej: Pedro)"
-              onKeyDown={async e => {
-                if (e.key === 'Enter' && newWorkerName.trim()) {
-                  setWorkerSaving(true);
-                  const w = await addWorker(session.id, newWorkerName.trim());
-                  if (w) setWorkers(prev => [...prev, w]);
-                  setNewWorkerName('');
-                  setWorkerSaving(false);
-                }
-              }}
-            />
+          <div className={styles.addWorkerRow} style={{ flexDirection: 'column', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+              <input
+                className={styles.formInput}
+                style={{ flex: 1 }}
+                value={newWorkerName}
+                onChange={e => setNewWorkerName(e.target.value)}
+                placeholder={`Nombre (ej: ${isClinica ? 'Ana' : 'Juan'})`}
+              />
+              <input
+                className={styles.formInput}
+                style={{ flex: 1 }}
+                value={newWorkerSpecialty}
+                onChange={e => setNewWorkerSpecialty(e.target.value)}
+                placeholder={isClinica ? 'Especialización (ej: Fisioterapeuta…)' : 'Especialización (ej: Chapista…)'}
+              />
+            </div>
             <button
               className={styles.uploadBtn}
-              style={{ width: 'auto', padding: '0.7rem 1.25rem' }}
+              style={{ width: 'auto', padding: '0.7rem 1.25rem', alignSelf: 'flex-end' }}
               disabled={!newWorkerName.trim() || workerSaving}
               onClick={async () => {
                 if (!newWorkerName.trim()) return;
                 setWorkerSaving(true);
-                const w = await addWorker(session.id, newWorkerName.trim());
+                const w = await addWorker(session.id, newWorkerName.trim(), newWorkerSpecialty.trim());
                 if (w) setWorkers(prev => [...prev, w]);
                 setNewWorkerName('');
+                setNewWorkerSpecialty('');
                 setWorkerSaving(false);
               }}
             >
-              {workerSaving ? '…' : 'Añadir'}
+              {workerSaving ? '…' : `Añadir ${workerLabel.toLowerCase()}`}
             </button>
           </div>
         </div>
@@ -408,39 +506,19 @@ export default function Settings() {
           <div className={styles.whatsappForm}>
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>Phone Number ID</label>
-              <input
-                className={styles.formInput}
-                type="text"
-                placeholder="123456789012345"
-                value={wpPhoneNumberId}
-                onChange={e => { setWpPhoneNumberId(e.target.value); setWpSaved(false); }}
-              />
+              <input className={styles.formInput} type="text" placeholder="123456789012345" value={wpPhoneNumberId} onChange={e => { setWpPhoneNumberId(e.target.value); setWpSaved(false); }} />
             </div>
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>Access Token</label>
-              <input
-                className={styles.formInput}
-                type="password"
-                placeholder={wpHasToken ? '••••••••••••••••' : 'EAAxxxxx...'}
-                value={wpToken}
-                onChange={e => { setWpToken(e.target.value); setWpSaved(false); }}
-              />
+              <input className={styles.formInput} type="password" placeholder={wpHasToken ? '••••••••••••••••' : 'EAAxxxxx...'} value={wpToken} onChange={e => { setWpToken(e.target.value); setWpSaved(false); }} />
             </div>
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>Verify Token</label>
-              <input
-                className={styles.formInput}
-                type="text"
-                placeholder="mi-token-secreto-123"
-                value={wpVerifyToken}
-                onChange={e => { setWpVerifyToken(e.target.value); setWpSaved(false); }}
-              />
+              <input className={styles.formInput} type="text" placeholder="mi-token-secreto-123" value={wpVerifyToken} onChange={e => { setWpVerifyToken(e.target.value); setWpSaved(false); }} />
             </div>
             <div className={styles.formGroup}>
               <label className={styles.formLabel}>URL del Webhook (cópiala en Meta)</label>
-              <div className={styles.webhookUrl}>
-                <code>{`https://atomic-assistance.es/api/webhook/${session?.id}`}</code>
-              </div>
+              <div className={styles.webhookUrl}><code>{`https://atomic-assistance.es/api/webhook/${session?.id}`}</code></div>
             </div>
             <button
               className={`${styles.uploadBtn} ${wpSaved ? styles.uploadBtnSuccess : ''}`}
@@ -458,6 +536,34 @@ export default function Settings() {
         </div>
 
       </section>
+
+      {/* ── CONFIRM DELETE WORKER ── */}
+      {confirmDeleteWorker && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}
+          onClick={() => setConfirmDeleteWorker(null)}
+        >
+          <div
+            style={{ background: 'var(--bg-raised)', border: '1px solid var(--border-strong)', borderRadius: 'var(--radius-lg)', padding: '1.75rem', maxWidth: 400, width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>¿Eliminar a {confirmDeleteWorker.name}?</span>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                Se eliminarán también <strong>todas las citas</strong> asignadas a este {workerLabel.toLowerCase()}. Esta acción no se puede deshacer.
+              </span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+              <button className={styles.uploadBtn} style={{ background: 'none', border: '1px solid var(--border-strong)', color: 'var(--text-muted)', width: 'auto', padding: '0.55rem 1.1rem' }} onClick={() => setConfirmDeleteWorker(null)}>Cancelar</button>
+              <button className={styles.uploadBtn} style={{ background: '#ef4444', borderColor: '#ef4444', width: 'auto', padding: '0.55rem 1.1rem' }} onClick={async () => {
+                await removeWorker(session.id, confirmDeleteWorker.id);
+                setWorkers(prev => prev.filter(x => x.id !== confirmDeleteWorker.id));
+                setConfirmDeleteWorker(null);
+              }}>Eliminar {workerLabel.toLowerCase()} y citas</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

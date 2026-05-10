@@ -1,6 +1,7 @@
 export interface Worker {
   id: string;
   name: string;
+  specialty?: string;
 }
 
 export const useWorkers = () => {
@@ -13,16 +14,29 @@ export const useWorkers = () => {
     }
   };
 
-  const addWorker = async (userId: string, name: string): Promise<Worker | null> => {
+  const addWorker = async (userId: string, name: string, specialty?: string): Promise<Worker | null> => {
     try {
       const res = await fetch(`/api/workers/${userId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, specialty }),
       });
       return res.ok ? res.json() : null;
     } catch {
       return null;
+    }
+  };
+
+  const updateWorker = async (userId: string, workerId: string, specialty: string): Promise<boolean> => {
+    try {
+      const res = await fetch(`/api/workers/${userId}/${workerId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ specialty }),
+      });
+      return res.ok;
+    } catch {
+      return false;
     }
   };
 
@@ -35,5 +49,5 @@ export const useWorkers = () => {
     }
   };
 
-  return { getWorkers, addWorker, removeWorker };
+  return { getWorkers, addWorker, updateWorker, removeWorker };
 };

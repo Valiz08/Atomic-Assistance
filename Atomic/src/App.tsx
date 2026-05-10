@@ -7,6 +7,7 @@ import { AuthProvider } from './hooks/useAuth.tsx'
 import Settings from './pages/settings/settings.tsx'
 import Chat from './pages/chat/chat.tsx'
 import CalendarPage from './pages/calendar/Calendar.tsx'
+import AdminPage from './pages/admin/admin.tsx'
 
 import { pdfjs } from 'react-pdf';
 
@@ -47,6 +48,14 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <CalendarPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminPage />
               </ProtectedRoute>
             }
           />

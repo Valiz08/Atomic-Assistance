@@ -1,63 +1,24 @@
-import { FormControl, IconButton, InputAdornment, InputLabel, OutlinedInput, TextField } from '@mui/material';
-import styles from './login.module.css';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
-import React, { useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../hooks/useUser';
 import { useAuth } from '../../hooks/useAuth';
-
-const inputSx = {
-    width: '100%',
-    '& .MuiOutlinedInput-root': {
-        background: '#252538',
-        borderRadius: '6px',
-        color: '#e2e2f0',
-        '& fieldset': {
-            borderColor: 'rgba(255,255,255,0.15)',
-        },
-        '&:hover fieldset': {
-            borderColor: 'rgba(255,255,255,0.28)',
-        },
-        '&.Mui-focused fieldset': {
-            borderColor: '#6366f1',
-            boxShadow: '0 0 0 3px rgba(99,102,241,0.12)',
-        },
-    },
-    '& .MuiInputLabel-root': {
-        color: '#9a9abf',
-    },
-    '& .MuiInputLabel-root.Mui-focused': {
-        color: '#818cf8',
-    },
-    '& .MuiInputAdornment-root .MuiSvgIcon-root': {
-        color: '#9a9abf',
-    },
-    '& input': {
-        color: '#e2e2f0',
-    },
-};
+import styles from './login.module.css';
 
 const Login = () => {
     const { login } = useUser();
     const { setAuthenticated } = useAuth();
-    const [showPassword, setShowPassword] = React.useState(false);
-    const [password, setPassword] = useState("");
-    const [username, setUsername] = useState("");
-    const handleClickShowPassword = () => setShowPassword((show) => !show);
+    const [showPassword, setShowPassword] = useState(false);
+    const [password, setPassword] = useState('');
+    const [username, setUsername] = useState('');
     const navigate = useNavigate();
-    const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-    };
-    const handleMouseUpPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-    };
+
     const handlerAuth = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         try {
             const mssg = await login(username, password);
-            if(mssg) {
+            if (mssg) {
                 setAuthenticated(true);
-                navigate("/dashboard");
+                navigate(mssg === '__superroot__' ? '/admin' : '/dashboard');
             }
         } catch (err) {}
     };
@@ -65,41 +26,62 @@ const Login = () => {
     return (
         <div className={styles.container}>
             <form className={styles.form} onSubmit={handlerAuth}>
-                <h1>Iniciar Sesión</h1>
-                <TextField
-                    id="outlined-basic"
-                    label="Nombre de usuario"
-                    variant="outlined"
-                    onChange={(e) => setUsername(e.target.value)}
-                    sx={inputSx}
-                />
-                <FormControl variant="outlined" sx={inputSx}>
-                    <InputLabel htmlFor="outlined-adornment-password">Contraseña</InputLabel>
-                    <OutlinedInput
-                        id="outlined-adornment-password"
-                        type={showPassword ? 'text' : 'password'}
-                        onChange={(e) => setPassword(e.target.value)}
-                        endAdornment={
-                            <InputAdornment position="end">
-                                <IconButton
-                                    aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                                    onClick={handleClickShowPassword}
-                                    onMouseDown={handleMouseDownPassword}
-                                    onMouseUp={handleMouseUpPassword}
-                                    edge="end"
-                                >
-                                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                                </IconButton>
-                            </InputAdornment>
-                        }
-                        label="Contraseña"
+                <div className={styles.formHead}>
+                    <span className={styles.logoMark}>A</span>
+                    <h1 className={styles.title}>Iniciar sesión</h1>
+                    <p className={styles.subtitle}>Accede a tu panel de Atomic Assistance</p>
+                </div>
+
+                <div className={styles.field}>
+                    <label className={styles.label} htmlFor="username">Usuario</label>
+                    <input
+                        id="username"
+                        className={styles.input}
+                        type="text"
+                        placeholder="Tu nombre de usuario"
+                        autoComplete="username"
+                        value={username}
+                        onChange={e => setUsername(e.target.value)}
                     />
-                </FormControl>
-                <button type="submit" className={styles["cta-button"]}>Entrar</button>
+                </div>
+
+                <div className={styles.field}>
+                    <label className={styles.label} htmlFor="password">Contraseña</label>
+                    <div className={styles.passwordWrap}>
+                        <input
+                            id="password"
+                            className={styles.input}
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="••••••••"
+                            autoComplete="current-password"
+                            value={password}
+                            onChange={e => setPassword(e.target.value)}
+                        />
+                        <button
+                            type="button"
+                            className={styles.eyeBtn}
+                            onClick={() => setShowPassword(v => !v)}
+                            tabIndex={-1}
+                            aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                        >
+                            {showPassword ? (
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                                    <line x1="1" y1="1" x2="23" y2="23"/>
+                                </svg>
+                            ) : (
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                            )}
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" className={styles.submitBtn}>Entrar</button>
             </form>
-            <p className={styles.registerPrompt}>
-                ¿No tienes cuenta? <a href="/register">Regístrate aquí</a>
-            </p>
         </div>
     );
 };

@@ -1,120 +1,198 @@
-.dashboard {
-  padding: 2.5rem;
-  background-color: var(--bg-surface);
-  min-height: 100vh;
-  text-align: center;
+.page {
+  padding: 2rem 2.5rem;
+  background: var(--bg-surface);
+  min-height: calc(100vh - 54px);
 }
 
-.header {
-  font-size: 1.75rem;
-  font-weight: 600;
+/* ── HEADER ── */
+.pageHeader {
+  margin-bottom: 2rem;
+}
+
+.greeting {
+  font-size: 1.4rem;
+  font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 0.5rem;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.03em;
+  margin: 0 0 0.25rem;
 }
 
-.welcome {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  margin-bottom: 3rem;
-  margin-top: 0;
+.subGreeting {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin: 0;
 }
 
-.welcome strong {
-  color: var(--text-primary);
-  font-weight: 500;
+/* ── STAT CARDS ── */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-.cardsGrid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 1.25rem;
-  margin-top: 0.5rem;
-}
-
-.card {
+.statCard {
   background: var(--bg-raised);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 2rem;
-  width: 260px;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
-  cursor: pointer;
-  text-align: left;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: border-color 0.2s;
 }
+.statCard:hover { border-color: var(--border-strong); }
 
-.card:hover {
-  border-color: var(--border-strong);
-  background-color: var(--bg-hover);
-}
-
-.card h3 {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  margin-bottom: 1rem;
-  margin-top: 0;
+.statHeader {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.statLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.07em;
 }
 
-.card p {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  margin: 0;
-  margin-top: 0.25rem;
+.statIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+.statIcon svg { width: 16px; height: 16px; }
 
-.card strong {
-  font-size: 2.75rem;
-  font-weight: 700;
-  color: var(--accent-hover);
-  display: block;
-  margin-bottom: 0.125rem;
+.statValue {
+  font-size: 2.25rem;
+  font-weight: 800;
   letter-spacing: -0.04em;
   line-height: 1;
-}
-
-.card2 strong {
-  color: var(--green);
-}
-
-.card3 strong {
   color: var(--text-primary);
-  font-size: 1.5rem;
-  letter-spacing: -0.02em;
 }
 
-/* Tablet */
-@media (max-width: 1024px) {
-  .dashboard { padding: 2rem; }
-  .header { font-size: 1.5rem; }
-  .welcome { margin-bottom: 2rem; }
-  .cardsGrid { gap: 1rem; }
-  .card { width: 240px; padding: 1.75rem; }
-  .card strong { font-size: 2.25rem; }
+.statNote {
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 
-/* Mobile */
+/* ── QUICK ACTIONS ── */
+.quickGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.quickCard {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: border-color 0.2s, transform 0.2s, background 0.2s;
+  text-decoration: none;
+}
+.quickCard:hover { border-color: var(--border-accent); background: var(--bg-hover); transform: translateY(-2px); }
+
+.quickIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.quickIcon svg { width: 22px; height: 22px; }
+
+.quickText { display: flex; flex-direction: column; gap: 0.2rem; }
+
+.quickTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.quickDesc {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* ── STATUS PANEL ── */
+.statusPanel {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.statusInfo { display: flex; flex-direction: column; gap: 0.25rem; }
+
+.statusTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.statusDesc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.statusBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.35em 0.9em;
+  border-radius: 20px;
+}
+
+.statusDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.statusActive {
+  background: rgba(16,185,129,0.12);
+  color: #10b981;
+  border: 1px solid rgba(16,185,129,0.3);
+}
+.statusActive .statusDot { background: #10b981; box-shadow: 0 0 6px #10b981; }
+
+.statusPaused {
+  background: rgba(245,158,11,0.12);
+  color: #f59e0b;
+  border: 1px solid rgba(245,158,11,0.3);
+}
+.statusPaused .statusDot { background: #f59e0b; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1200px) {
+  .statsGrid { grid-template-columns: repeat(2, 1fr); }
+}
+
 @media (max-width: 768px) {
-  .dashboard { padding: 1.5rem; }
-  .header { font-size: 1.3rem; }
-  .welcome { margin-bottom: 1.5rem; }
-  .cardsGrid { flex-direction: column; align-items: center; gap: 0.875rem; }
-  .card { width: 100%; max-width: 340px; padding: 1.5rem; }
-  .card strong { font-size: 2rem; }
+  .page { padding: 1.25rem; }
+  .statsGrid { grid-template-columns: repeat(2, 1fr); }
+  .quickGrid { grid-template-columns: 1fr; }
 }
 
-/* Small Mobile */
 @media (max-width: 480px) {
-  .dashboard { padding: 1rem; }
-  .header { font-size: 1.2rem; }
-  .cardsGrid { gap: 0.75rem; }
-  .card { padding: 1.25rem; }
-  .card strong { font-size: 1.75rem; }
-  .card h3 { font-size: 0.65rem; }
+  .statsGrid { grid-template-columns: 1fr; }
 }

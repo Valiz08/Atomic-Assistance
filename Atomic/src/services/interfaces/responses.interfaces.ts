@@ -3,6 +3,11 @@ export interface commonResponse<T> {
     success: boolean;
     message: string;
     userId?: string;
+    role?: 'user' | 'superroot';
+    businessType?: 'taller' | 'clinica';
+    businessName?: string;
+    pdfId?: string;
+    name?: string;
 }
 
 export interface atomicResponse<M> {

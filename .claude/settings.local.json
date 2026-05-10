@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(grep -E \"pdf-parse|uuid|socket.io$\")"
+      "Bash(grep -E \"pdf-parse|uuid|socket.io$\")",
+      "Bash(grep -E \"\\\\.\\(css|js|jsx|ts|tsx\\)$\")",
+      "Bash(findstr \"react-pdf\\\\|pdfjs\")",
+      "Bash(findstr /i \"pdf\")",
+      "Bash(npx tsc *)"
     ]
   }
 }

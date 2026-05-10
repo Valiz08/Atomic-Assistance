@@ -1,124 +1,95 @@
-import * as React from 'react';
-import Box from '@mui/material/Box';
-import Avatar from '@mui/material/Avatar';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip';
-import PersonAdd from '@mui/icons-material/PersonAdd';
-import Settings from '@mui/icons-material/Settings';
-import Logout from '@mui/icons-material/Logout';
+import { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { useAuth } from '../../hooks/useAuth';
+import { useTheme } from '../../hooks/useTheme';
+import type { RootState } from '../../store/store';
 import styles from './header.module.css';
 
 export default function Header() {
-    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-    const navigate = useNavigate();
-    const { logout } = useAuth();
-    const open = Boolean(anchorEl);
-    const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-        setAnchorEl(event.currentTarget);
+  const session = useSelector((s: RootState) => s.user.session) as any;
+  const { logout } = useAuth();
+  const { theme, toggle } = useTheme();
+  const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
     };
-    const handleClose = () => {
-        setAnchorEl(null);
-    };
-    const handleLogout = () => {
-        logout();
-        navigate('/');
-    };
-    return(
-        <>
-            <div className={styles["header"]}>
-                <h1><a href="/dashboard">Atomic Assistance</a></h1>
-                <nav className={styles.nav}>
-                    <NavLink to="/dashboard" className={({ isActive }) => isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>Dashboard</NavLink>
-                    <NavLink to="/chat" className={({ isActive }) => isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>Chat</NavLink>
-                    <NavLink to="/calendar" className={({ isActive }) => isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>Agenda</NavLink>
-                    <NavLink to="/settings" className={({ isActive }) => isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}>Configuración</NavLink>
-                </nav>
-                <React.Fragment>
-                    <Box sx={{ display: 'flex', alignItems: 'center', textAlign: 'center' }}>
-                        <Tooltip title="Account settings">
-                        <IconButton
-                            onClick={handleClick}
-                            size="small"
-                            sx={{ ml: 2 }}
-                            aria-controls={open ? 'account-menu' : undefined}
-                            aria-haspopup="true"
-                            aria-expanded={open ? 'true' : undefined}
-                        >
-                            <Avatar sx={{ width: 32, height: 32 }}>{}</Avatar>
-                        </IconButton>
-                        </Tooltip>
-                    </Box>
-                    <Menu
-                        anchorEl={anchorEl}
-                        id="account-menu"
-                        open={open}
-                        onClose={handleClose}
-                        onClick={handleClose}
-                        slotProps={{
-                        paper: {
-                            elevation: 0,
-                            sx: {
-                            overflow: 'visible',
-                            filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
-                            mt: 1.5,
-                            '& .MuiAvatar-root': {
-                                width: 32,
-                                height: 32,
-                                ml: -0.5,
-                                mr: 1,
-                            },
-                            '&::before': {
-                                content: '""',
-                                display: 'block',
-                                position: 'absolute',
-                                top: 0,
-                                right: 14,
-                                width: 10,
-                                height: 10,
-                                bgcolor: 'background.paper',
-                                transform: 'translateY(-50%) rotate(45deg)',
-                                zIndex: 0,
-                            },
-                            },
-                        },
-                        }}
-                        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-                    >
-                        <MenuItem onClick={handleClose}>
-                        <Avatar /> Profile
-                        </MenuItem>
-                        <MenuItem onClick={handleClose}>
-                        <Avatar /> My account
-                        </MenuItem>
-                        <Divider />
-                        <MenuItem onClick={handleClose}>
-                        <ListItemIcon>
-                            <PersonAdd fontSize="small" />
-                        </ListItemIcon>
-                        Add another account
-                        </MenuItem>
-                        <MenuItem onClick={handleClose}>
-                        <ListItemIcon>
-                            <Settings fontSize="small" />
-                        </ListItemIcon>
-                        Settings
-                        </MenuItem>
-                        <MenuItem onClick={handleLogout}>
-                        <ListItemIcon>
-                            <Logout fontSize="small" />
-                        </ListItemIcon>
-                        Logout
-                        </MenuItem>
-                    </Menu>
-                    </React.Fragment>
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+    setMenuOpen(false);
+  };
+
+  const initials = session?.username
+    ? session.username.slice(0, 2).toUpperCase()
+    : 'AA';
+
+  return (
+    <header className={styles.header}>
+      <a href="/dashboard" className={styles.logo}>
+        <span className={styles.logoMark}>A</span>
+        <span className={styles.logoText}>Atomic</span>
+      </a>
+
+      <nav className={styles.nav}>
+        <NavLink to="/dashboard" className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}>Dashboard</NavLink>
+        <NavLink to="/chat"      className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}>Chat</NavLink>
+        <NavLink to="/calendar"  className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}>Agenda</NavLink>
+        <NavLink to="/settings"  className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}>Ajustes</NavLink>
+      </nav>
+
+      <div className={styles.right} ref={menuRef}>
+        <button className={styles.themeBtn} onClick={toggle} title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}>
+          {theme === 'dark' ? (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="5"/>
+              <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+              <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+          )}
+        </button>
+
+        <button className={styles.avatarBtn} onClick={() => setMenuOpen(o => !o)}>
+          <span className={styles.avatar}>{initials}</span>
+          <svg className={`${styles.chevron} ${menuOpen ? styles.chevronOpen : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+
+        {menuOpen && (
+          <div className={styles.dropdown}>
+            <div className={styles.dropdownHeader}>
+              <span className={styles.dropdownName}>{session?.username || 'Usuario'}</span>
+              {session?.businessName && <span className={styles.dropdownBusiness}>{session.businessName}</span>}
             </div>
-        </>
-    )
+            <div className={styles.dropdownDivider} />
+            <button className={styles.dropdownItem} onClick={() => { navigate('/settings'); setMenuOpen(false); }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              Configuración
+            </button>
+            <button className={`${styles.dropdownItem} ${styles.dropdownItemDanger}`} onClick={handleLogout}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              Cerrar sesión
+            </button>
+          </div>
+        )}
+      </div>
+    </header>
+  );
 }
